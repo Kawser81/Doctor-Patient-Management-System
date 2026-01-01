@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg { background: linear-gradient(to bottom right, #eff6ff, #e0e7ff); }
+        .info-card { transition: transform 0.2s; }
+        .info-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+
+<!-- Modern Navbar -->
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/" class="text-xl font-bold text-indigo-600 flex items-center gap-2">
+            <i class="fas fa-heartbeat"></i> MediCare Admin
+        </a>
+        <div class="flex items-center gap-8">
+<!--            <a href="/admin/dashboard" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">-->
+<!--                <i class="fas fa-tachometer-alt"></i> Dashboard-->
+<!--            </a>-->
+            <a th:href="@{/auth/logout}" class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mx-auto p-6 max-w-5xl">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-calendar-check text-indigo-600"></i>
+                Appointment Details
+            </h1>
+            <a href="/admin/dashboard"
+               class="bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${message}" class="bg-green-100 border-l-4 border-green-500 text-green-700 px-6 py-4 rounded-lg mb-6 shadow-lg flex items-center">
+        <i class="fas fa-check-circle mr-3 text-xl"></i>
+        <span th:text="${message}"></span>
+    </div>
+
+    <div th:if="${error}" class="bg-red-100 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg mb-6 shadow-lg flex items-center">
+        <i class="fas fa-times-circle mr-3 text-xl"></i>
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Main Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+        <!-- Appointment Information -->
+        <div class="bg-white rounded-xl shadow-lg p-6 info-card">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-info-circle text-indigo-600"></i>
+                Appointment Information
+            </h2>
+            <div class="space-y-4">
+                <div class="flex justify-between border-b pb-3">
+                    <span class="font-semibold text-gray-600">Appointment ID:</span>
+                    <span class="text-gray-900" th:text="${appointment.id}">123</span>
+                </div>
+                <div class="flex justify-between border-b pb-3">
+                    <span class="font-semibold text-gray-600">Date:</span>
+                    <span class="text-gray-900" th:text="${#temporals.format(appointment.appointmentDate, 'dd MMM yyyy')}">01 Jan 2024</span>
+                </div>
+                <div class="flex justify-between border-b pb-3">
+                    <span class="font-semibold text-gray-600">Time:</span>
+                    <span class="text-gray-900" th:text="${appointment.appointmentTime != null ? appointment.appointmentTime : 'Not specified'}">10:00 AM</span>
+                </div>
+                <div class="flex justify-between pt-2">
+                    <span class="font-semibold text-gray-600">Status:</span>
+                    <span th:switch="${appointment.status.name()}" class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
+                        <span th:case="'CONFIRMED'" class="bg-green-100 text-green-800" th:text="${appointment.status.name()}">CONFIRMED</span>
+                        <span th:case="'CANCELLED'" class="bg-red-100 text-red-800" th:text="${appointment.status.name()}">CANCELLED</span>
+                        <span th:case="*" class="bg-gray-100 text-gray-800" th:text="${appointment.status.name()}">UNKNOWN</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Information -->
+        <div class="bg-white rounded-xl shadow-lg p-6 info-card">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-user-injured text-blue-600"></i>
+                Patient Information
+            </h2>
+            <div th:if="${appointment.patient != null}" class="space-y-4">
+                <div class="flex justify-between border-b pb-3">
+                    <span class="font-semibold text-gray-600">Patient ID:</span>
+                    <span class="text-gray-900" th:text="${appointment.patient.id}">1</span>
+                </div>
+                <div class="flex justify-between border-b pb-3">
+                    <span class="font-semibold text-gray-600">Email:</span>
+                    <span class="text-gray-900" th:text="${appointment.patient.email}">patient@example.com</span>
+                </div>
+                <div class="flex justify-between pt-2">
+                    <span class="font-semibold text-gray-600">Role:</span>
+                    <span class="text-gray-900" th:text="${appointment.patient.role}">PATIENT</span>
+                </div>
+            </div>
+            <div th:unless="${appointment.patient != null}" class="text-center text-gray-500 py-8">
+                <i class="fas fa-user-slash text-4xl mb-3"></i>
+                <p>Patient information not available</p>
+            </div>
+        </div>
+
+        <!-- Doctor Information -->
+        <div class="bg-white rounded-xl shadow-lg p-6 info-card lg:col-span-2">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <i class="fas fa-user-md text-green-600"></i>
+                Doctor Information
+            </h2>
+            <div th:if="${appointment.doctor != null}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div class="flex justify-between border-b pb-3">
+                        <span class="font-semibold text-gray-600">Doctor ID:</span>
+                        <span class="text-gray-900" th:text="${appointment.doctor.id}">1</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-3">
+                        <span class="font-semibold text-gray-600">Name:</span>
+                        <span class="text-gray-900" th:text="${appointment.doctor.doctorName != null ? appointment.doctor.doctorName : 'Not provided'}">Dr. Smith</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-3">
+                        <span class="font-semibold text-gray-600">Speciality:</span>
+                        <span class="text-gray-900" th:text="${appointment.doctor.speciality != null ? appointment.doctor.speciality : 'Not provided'}">Cardiology</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-3">
+                        <span class="font-semibold text-gray-600">Degree:</span>
+                        <span class="text-gray-900" th:text="${appointment.doctor.degree != null ? appointment.doctor.degree : 'Not provided'}">MBBS</span>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex justify-between border-b pb-3">
+                        <span class="font-semibold text-gray-600">Email:</span>
+                        <span class="text-gray-900" th:text="${appointment.doctor.email != null ? appointment.doctor.email : 'Not provided'}">doctor@example.com</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-3">
+                        <span class="font-semibold text-gray-600">Contact:</span>
+                        <span class="text-gray-900" th:text="${appointment.doctor.contact != null ? appointment.doctor.contact : 'Not provided'}">01712345678</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-3">
+                        <span class="font-semibold text-gray-600">Consultation Fee:</span>
+                        <span class="text-gray-900" th:text="${appointment.doctor.consultationFee != null ? (appointment.doctor.consultationFee + ' BDT') : 'Not provided'}">500 BDT</span>
+                    </div>
+                    <div class="flex justify-between border-b pb-3">
+                        <span class="font-semibold text-gray-600">Address:</span>
+                        <span class="text-gray-900" th:text="${appointment.doctor.address != null ? appointment.doctor.address : 'Not provided'}">Dhaka</span>
+                    </div>
+                </div>
+            </div>
+            <div th:unless="${appointment.doctor != null}" class="text-center text-gray-500 py-8">
+                <i class="fas fa-user-md-slash text-4xl mb-3"></i>
+                <p>Doctor information not available</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex flex-wrap gap-4 justify-center">
+            <a href="/admin/dashboard"
+               class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+
+            <form th:if="${appointment.status.name() == 'CONFIRMED'}"
+                  th:action="@{/admin/appointments/{id}/cancel(id=${appointment.id})}"
+                  method="post"
+                  class="inline"
+                  onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                <button type="submit"
+                        class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2">
+                    <i class="fas fa-times-circle"></i> Cancel Appointment
+                </button>
+            </form>
+
+            <span th:if="${appointment.status.name() == 'CANCELLED'}"
+                  class="px-6 py-3 bg-gray-300 text-gray-600 rounded-lg cursor-not-allowed flex items-center gap-2">
+                <i class="fas fa-ban"></i> Already Cancelled
+            </span>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

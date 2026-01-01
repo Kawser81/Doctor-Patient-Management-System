@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Doctor Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+
+<div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-2xl">
+  <div class="text-center mb-8">
+    <i class="fas fa-user-md text-6xl text-indigo-600 mb-4"></i>
+    <h1 class="text-3xl font-bold text-gray-800">Edit Your Doctor Profile</h1>
+    <p class="text-gray-600 mt-2">Update your professional information below.</p>
+  </div>
+
+  <form th:action="@{'/doctors/' + ${doctorId} + '/edit'}"
+        th:object="${doctorDto}"
+        method="post"
+        class="space-y-6">
+
+    <!-- Success message -->
+    <div th:if="${param.success}" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+      Profile updated successfully!
+    </div>
+
+    <!-- Access denied or error message -->
+    <div th:if="${param.access_denied}" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      You don't have permission to edit this profile.
+    </div>
+
+    <!-- Validation errors summary -->
+    <div th:if="${#fields.hasGlobalErrors()}" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+      <span th:each="err : ${#fields.globalErrors()}" th:text="${err.defaultMessage}"></span>
+    </div>
+
+    <!-- Doctor Name -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Full Name <span class="text-red-500">*</span>
+      </label>
+      <input type="text" th:field="*{doctorName}" required
+             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+             placeholder="Dr. John Doe">
+      <p th:if="${#fields.hasErrors('doctorName')}" th:errors="*{doctorName}"
+         class="text-red-500 text-xs mt-1"></p>
+    </div>
+
+    <!-- Email (Read-only) -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Registered Email</label>
+      <input type="email" th:field="*{email}" readonly
+             class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed">
+    </div>
+
+    <!-- Degree -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Qualifications/Degree <span class="text-red-500">*</span>
+      </label>
+      <input type="text" th:field="*{degree}" required
+             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+             placeholder="e.g. MBBS, FCPS (Medicine), MD">
+      <p th:if="${#fields.hasErrors('degree')}" th:errors="*{degree}"
+         class="text-red-500 text-xs mt-1"></p>
+    </div>
+
+    <!-- Speciality -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Speciality <span class="text-red-500">*</span>
+      </label>
+      <select th:field="*{speciality}" required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <option value="">-- Select Speciality --</option>
+        <option value="Cardiology">Cardiology</option>
+        <option value="Neurology">Neurology</option>
+        <option value="Pediatrics">Pediatrics</option>
+        <option value="Orthopedics">Orthopedics</option>
+        <option value="Dermatology">Dermatology</option>
+        <option value="General Medicine">General Medicine</option>
+        <option value="Gynecology">Gynecology & Obstetrics</option>
+        <option value="ENT">ENT (Ear, Nose, Throat)</option>
+        <option value="Psychiatry">Psychiatry</option>
+        <option value="Surgery">General Surgery</option>
+        <option value="Other">Other</option>
+      </select>
+      <p th:if="${#fields.hasErrors('speciality')}" th:errors="*{speciality}"
+         class="text-red-500 text-xs mt-1"></p>
+    </div>
+
+    <!-- Consultation Time -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Consultation Start Time <span class="text-red-500">*</span>
+        </label>
+        <input type="time" th:field="*{consultationStartTime}" required
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <p th:if="${#fields.hasErrors('consultationStartTime')}" th:errors="*{consultationStartTime}"
+           class="text-red-500 text-xs mt-1"></p>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Consultation End Time <span class="text-red-500">*</span>
+        </label>
+        <input type="time" th:field="*{consultationEndTime}" required
+               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <p th:if="${#fields.hasErrors('consultationEndTime')}" th:errors="*{consultationEndTime}"
+           class="text-red-500 text-xs mt-1"></p>
+      </div>
+    </div>
+
+    <!-- Off Days -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Off Days (Optional)</label>
+      <input type="text" th:field="*{offDays}"
+             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+             placeholder="e.g. FRIDAY,SATURDAY">
+      <p class="text-xs text-gray-500 mt-1">Comma-separated full day names in uppercase. Leave empty if available every day.</p>
+      <p th:if="${#fields.hasErrors('offDays')}" th:errors="*{offDays}"
+         class="text-red-500 text-xs mt-1"></p>
+    </div>
+
+    <!-- Consultation Fee -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Consultation Fee (BDT) <span class="text-red-500">*</span>
+      </label>
+      <input type="number" th:field="*{consultationFee}" required min="200" step="50"
+             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+             placeholder="800">
+      <p class="text-xs text-gray-500">Typical range: 500–2000 BDT</p>
+      <p th:if="${#fields.hasErrors('consultationFee')}" th:errors="*{consultationFee}"
+         class="text-red-500 text-xs mt-1"></p>
+    </div>
+
+    <!-- Clinic Address -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Clinic/Hospital Address <span class="text-red-500">*</span>
+      </label>
+      <textarea th:field="*{address}" required rows="3"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="House #10, Road #5, Block #B, Mirpur, Dhaka"></textarea>
+      <p th:if="${#fields.hasErrors('address')}" th:errors="*{address}"
+         class="text-red-500 text-xs mt-1"></p>
+    </div>
+
+    <!-- Contact Number -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Contact Number <span class="text-red-500">*</span>
+      </label>
+      <input type="text" th:field="*{contact}" required
+             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+             placeholder="+880 17xxx-xxxxx or 02-xxxxxxx">
+      <p th:if="${#fields.hasErrors('contact')}" th:errors="*{contact}"
+         class="text-red-500 text-xs mt-1"></p>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="pt-6">
+      <button type="submit"
+              class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 rounded-lg transition duration-200 flex items-center justify-center text-lg shadow-md">
+        <i class="fas fa-save mr-3"></i>
+        Save Changes
+      </button>
+    </div>
+
+    <div class="text-center text-xs text-gray-500 mt-6">
+      <a th:href="@{'/doctors/' + ${doctorId} + '/profile'}" class="text-indigo-600 hover:underline">
+        ← Back to Profile
+      </a>
+    </div>
+  </form>
+</div>
+
+</body>
+</html>

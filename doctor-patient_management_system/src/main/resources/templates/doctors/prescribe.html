@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Write Prescription - MediCare</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col">
+
+<!-- Navbar -->
+
+<nav class="bg-white shadow-md sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-3">
+      <i class="fas fa-heartbeat text-3xl text-indigo-600"></i>
+      <span class="text-2xl font-bold text-gray-800">MediCare</span>
+    </a>
+
+    <!-- Navigation Links (No box/button, full consistency with icon + text) -->
+    <div class="flex items-center gap-8 flex-wrap">
+      <!-- Home -->
+      <a href="/"
+         class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+        <i class="fas fa-home"></i>
+        Home
+      </a>
+
+      <!-- My Appointments (active/highlighted) -->
+      <a href="/doctors/my-appointments"
+         class="flex items-center gap-2 text-indigo-600 font-bold border-b-2 border-indigo-600 pb-1 transition">
+        <i class="fas fa-calendar-alt"></i>
+        My Appointments
+      </a>
+
+      <!-- Logout -->
+      <a th:href="@{/auth/logout}"
+         class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout
+      </a>
+    </div>
+  </div>
+</nav>
+
+
+<!--<nav class="bg-white shadow-md sticky top-0 z-50">-->
+<!--  <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">-->
+<!--    <a href="/" class="flex items-center gap-3">-->
+<!--      <i class="fas fa-heartbeat text-3xl text-indigo-600"></i>-->
+<!--      <span class="text-2xl font-bold text-gray-800">MediCare</span>-->
+<!--    </a>-->
+<!--    <div class="flex items-center gap-8">-->
+<!--      <a href="/" class="text-gray-700 hover:text-indigo-600 font-medium transition">Home</a>-->
+<!--      <a href="/doctors/my-appointments" class="text-indigo-600 font-bold border-b-2 border-indigo-600 pb-1">My Appointments</a>-->
+<!--      <a th:href="@{/auth/logout}"-->
+<!--         class="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-medium flex items-center gap-2 shadow-md">-->
+<!--        <i class="fas fa-sign-out-alt"></i>-->
+<!--        Logout-->
+<!--      </a>-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</nav>-->
+
+<!-- Main Content -->
+<main class="flex-grow py-12 px-6">
+  <div class="max-w-5xl mx-auto">
+    <h1 class="text-4xl font-extrabold text-gray-800 text-center mb-10">Write Prescription</h1>
+
+    <!-- Appointment Info -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-10">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Appointment Details</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <p class="text-lg"><strong>Patient Name:</strong> <span th:text="${patient.patientName}">N/A</span></p>
+          <p class="text-lg"><strong>Contact:</strong> <span th:text="${patient.contact}">N/A</span></p>
+          <p class="text-lg"><strong>Gender:</strong> <span th:text="${patient.gender}">N/A</span></p>
+        </div>
+        <div>
+          <p class="text-lg"><strong>Date:</strong> <span th:text="${#temporals.format(appointment.appointmentDate, 'dd MMMM yyyy')}">N/A</span></p>
+          <p class="text-lg"><strong>Time:</strong> <span th:text="${appointment.appointmentTime}">N/A</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prescription Form -->
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <form th:action="@{/doctors/appointments/{id}/prescribe(id=${appointment.id})}"
+            th:object="${prescription}"
+            method="post">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div>
+            <label class="block text-lg font-semibold text-gray-700 mb-2">Chief Complaint</label>
+            <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg" rows="4" th:field="*{chiefComplaint}"></textarea>
+          </div>
+          <div>
+            <label class="block text-lg font-semibold text-gray-700 mb-2">History</label>
+            <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg" rows="4" th:field="*{history}"></textarea>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div>
+            <label class="block text-lg font-semibold text-gray-700 mb-2">Examination Findings</label>
+            <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg" rows="4" th:field="*{examinationFindings}"></textarea>
+          </div>
+          <div>
+            <label class="block text-lg font-semibold text-gray-700 mb-2">Diagnosis</label>
+            <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg" rows="4" th:field="*{diagnosis}"></textarea>
+          </div>
+        </div>
+
+        <div class="mb-8">
+          <label class="block text-lg font-semibold text-gray-700 mb-2">Medicines</label>
+          <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg" rows="8" th:field="*{medicines}"
+                    placeholder="Tab. Paracetamol 500mg - 1+0+1 - 5 days"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+          <div>
+            <label class="block text-lg font-semibold text-gray-700 mb-2">Advice</label>
+            <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg" rows="4" th:field="*{advice}"></textarea>
+          </div>
+          <div>
+            <label class="block text-lg font-semibold text-gray-700 mb-2">Next Visit</label>
+            <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg" rows="4" th:field="*{nextVisit}"></textarea>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="bg-green-600 text-white px-10 py-4 rounded-xl text-xl font-semibold hover:bg-green-700 transition">
+            Save Prescription
+          </button>
+          <a th:href="@{/doctors/my-appointments}" class="ml-8 text-indigo-600 text-xl font-semibold hover:underline">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12">
+  <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+    <div>
+      <div class="flex items-center gap-3 mb-4">
+        <i class="fas fa-heartbeat text-3xl text-indigo-500"></i>
+        <span class="text-2xl font-bold text-white">MediCare</span>
+      </div>
+      <p class="text-gray-400">Your trusted platform for finding and booking doctors online in Bangladesh.</p>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-4 text-lg">Quick Links</h4>
+      <ul class="space-y-3">
+        <li><a href="/" class="hover:text-indigo-400 transition">Home</a></li>
+        <li><a href="/doctors/my-appointments" class="hover:text-indigo-400 transition">My Appointments</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-4 text-lg">Contact</h4>
+      <p class="flex items-center gap-2 mb-2"><i class="fas fa-phone-alt"></i> +880 96XX-XXXXXX</p>
+      <p class="flex items-center gap-2 mb-2"><i class="fas fa-envelope"></i> support@medicare.com</p>
+      <p class="flex items-center gap-2"><i class="fas fa-map-marker-alt"></i> Dhaka, Bangladesh</p>
+    </div>
+    <div>
+      <h4 class="text-white font-semibold mb-4 text-lg">Follow Us</h4>
+      <div class="flex gap-4 text-2xl">
+        <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-facebook"></i></a>
+        <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-twitter"></i></a>
+        <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-linkedin"></i></a>
+        <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-instagram"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-gray-800 mt-10 pt-8 text-center text-gray-500">
+    <p>© 2025 MediCare. All rights reserved. Made with ❤️ in Bangladesh.</p>
+  </div>
+</footer>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <title>Prescribe - Appointment #[[${appointment.id}]]</title>-->
+<!--  <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet"/>-->
+<!--  <style>-->
+<!--    textarea { min-height: 100px; }-->
+<!--  </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--<div th:replace="~{fragments/header :: header}"></div>-->
+
+<!--<div class="container mt-5">-->
+<!--  <h2 class="mb-4">Write Prescription</h2>-->
+
+<!--  <div class="card mb-4">-->
+<!--    <div class="card-body">-->
+<!--      <h5>Appointment Details</h5>-->
+<!--      <p><strong>Patient:</strong> <span th:text="${patient.patientName}"></span></p>-->
+<!--      <p><strong>Date:</strong> <span th:text="${#temporals.format(appointment.appointmentDate, 'dd MMMM yyyy')}"></span></p>-->
+<!--      <p><strong>Time:</strong> <span th:text="${appointment.timeRange}"></span></p>-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--  <form th:action="@{/doctors/appointments/{id}/prescribe(id=${appointment.id})}"-->
+<!--        th:object="${prescription}"-->
+<!--        method="post">-->
+
+<!--    <div class="row">-->
+<!--      <div class="col-md-6 mb-3">-->
+<!--        <label class="form-label">Chief Complaint</label>-->
+<!--        <textarea class="form-control" th:field="*{chiefComplaint}"></textarea>-->
+<!--      </div>-->
+<!--      <div class="col-md-6 mb-3">-->
+<!--        <label class="form-label">History</label>-->
+<!--        <textarea class="form-control" th:field="*{history}"></textarea>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div class="row">-->
+<!--      <div class="col-md-6 mb-3">-->
+<!--        <label class="form-label">Examination Findings</label>-->
+<!--        <textarea class="form-control" th:field="*{examinationFindings}"></textarea>-->
+<!--      </div>-->
+<!--      <div class="col-md-6 mb-3">-->
+<!--        <label class="form-label">Diagnosis</label>-->
+<!--        <textarea class="form-control" th:field="*{diagnosis}"></textarea>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div class="mb-3">-->
+<!--      <label class="form-label">Medicines (one per line: Name - Dosage - Duration)</label>-->
+<!--      <textarea class="form-control" th:field="*{medicines}" placeholder="e.g. Tab. Paracetamol 500mg - 1+0+1 - After meal - 5 days"></textarea>-->
+<!--    </div>-->
+
+<!--    <div class="row">-->
+<!--      <div class="col-md-6 mb-3">-->
+<!--        <label class="form-label">Advice</label>-->
+<!--        <textarea class="form-control" th:field="*{advice}"></textarea>-->
+<!--      </div>-->
+<!--      <div class="col-md-6 mb-3">-->
+<!--        <label class="form-label">Next Visit / Follow-up</label>-->
+<!--        <textarea class="form-control" th:field="*{nextVisit}"></textarea>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div class="mt-4">-->
+<!--      <button type="submit" class="btn btn-success btn-lg">Save Prescription</button>-->
+<!--      <a th:href="@{/doctors/my-appointments}" class="btn btn-secondary btn-lg ms-3">Cancel</a>-->
+<!--    </div>-->
+<!--  </form>-->
+<!--</div>-->
+
+<!--<div th:replace="~{fragments/footer :: footer}"></div>-->
+
+<!--<script th:src="@{/js/bootstrap.bundle.min.js}"></script>-->
+<!--</body>-->
+<!--</html>-->

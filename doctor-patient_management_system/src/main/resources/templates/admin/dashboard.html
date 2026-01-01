@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg { background: linear-gradient(to bottom right, #eff6ff, #e0e7ff); }
+        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .chart-container { position: relative; height: 400px; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+
+<!-- Modern Navbar -->
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/" class="text-xl font-bold text-indigo-600 flex items-center gap-2">
+            <i class="fas fa-heartbeat"></i> MediCare Admin
+        </a>
+        <div class="flex items-center gap-8 flex-wrap">
+<!--            <a href="/admin/dashboard" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">-->
+<!--                <i class="fas fa-tachometer-alt"></i> Dashboard-->
+<!--            </a>-->
+<!--            <a href="/admin/users" class="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-medium transition">-->
+<!--                <i class="fas fa-users"></i> Manage Users-->
+<!--            </a>-->
+<!--            <a href="/admin/appointments" class="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition">-->
+<!--                <i class="fas fa-calendar-alt"></i> Manage Appointments-->
+<!--            </a>-->
+<!--            <a href="/admin/doctors" class="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium transition">-->
+<!--                <i class="fas fa-user-md"></i> Manage Doctors-->
+<!--            </a>-->
+            <a th:href="@{/auth/logout}" class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto p-6 mt-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
+
+    <!-- Alerts Section -->
+    <div th:if="${alerts != null and !alerts.isEmpty()}" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">
+        <div class="flex">
+<!--            <div class="flex-shrink-0">-->
+<!--                <i class="fas fa-exclamation-triangle text-yellow-500"></i>-->
+<!--            </div>-->
+            <div class="ml-3">
+                <ul class="mb-0">
+                    <li th:each="alert : ${alerts}" th:text="${alert}"></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${message}" class="bg-green-100 border-l-4 border-green-500 text-green-700 px-6 py-4 rounded-lg mb-6 shadow-lg flex items-center">
+        <i class="fas fa-check-circle mr-3 text-xl"></i>
+        <span th:text="${message}"></span>
+    </div>
+
+    <div th:if="${error}" class="bg-red-100 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg mb-6 shadow-lg flex items-center">
+        <i class="fas fa-times-circle mr-3 text-xl"></i>
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Users</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalUsers}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100">
+                    <i class="fas fa-user-md text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Doctors</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalDoctors}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-indigo-100">
+                    <i class="fas fa-user-injured text-indigo-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Patients</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalPatients}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100">
+                    <i class="fas fa-exclamation-circle text-yellow-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Incomplete Profiles</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${incompleteProfiles}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-gray-100">
+                    <i class="fas fa-calendar-check text-gray-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Appointments</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalAppointments}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Confirmed Appts</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.confirmedAppointments}">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- User Growth Chart -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">User Growth (Last 12 Months)</h3>
+            <div class="chart-container">
+                <canvas id="userGrowthChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Appointment Status Pie Chart -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4">Appointment Status Distribution</h3>
+            <div class="chart-container">
+                <canvas id="appointmentPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table Section -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold mb-4">Recent Users</h3>
+            <form method="get" action="/admin/dashboard" class="flex flex-col sm:flex-row gap-4">
+                <!-- Role Filter -->
+                <select name="role" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">All Roles</option>
+                    <option value="ADMIN" th:selected="${roleFilter == 'ADMIN'}">ADMIN</option>
+                    <option value="DOCTOR" th:selected="${roleFilter == 'DOCTOR'}">DOCTOR</option>
+                    <option value="PATIENT" th:selected="${roleFilter == 'PATIENT'}">PATIENT</option>
+                </select>
+                <!-- Search -->
+                <input type="text" name="userSearch" th:value="${userSearchQuery}" placeholder="Search by email..." class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    <i class="fas fa-search mr-2"></i>Filter
+                </button>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="usersTable">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Complete</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                <tr th:each="user : ${users}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.id}">1</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.email}">user@example.com</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span th:switch="${user.role.name()}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                            <span th:case="'ADMIN'" class="bg-red-100 text-red-800" th:text="${user.role.name()}">ADMIN</span>
+                            <span th:case="'DOCTOR'" class="bg-green-100 text-green-800" th:text="${user.role.name()}">DOCTOR</span>
+                            <span th:case="*" class="bg-blue-100 text-blue-800" th:text="${user.role.name()}">PATIENT</span>
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <i class="fas" th:class="${user.complete} ? 'fa-check text-green-500' : 'fa-times text-red-500'"></i>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <!-- Delete Form (like users.html) -->
+                        <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                            <button type="submit" class="text-red-600 hover:text-red-900 flex items-center gap-1">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination for Users -->
+        <div th:if="${userTotalElements != null and userTotalElements > 0}" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-sm text-gray-700">
+                    Showing
+                    <span class="font-semibold" th:text="${userCurrentPage != null ? (userCurrentPage * 10 + 1) : 1}">1</span>
+                    to
+                    <span class="font-semibold" th:text="${userCurrentPage != null and userTotalElements != null ? (((userCurrentPage + 1) * 10 > userTotalElements) ? userTotalElements : (userCurrentPage + 1) * 10) : 10}">10</span>
+                    of
+                    <span class="font-semibold" th:text="${userTotalElements}">0</span> results
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Previous -->
+                    <a th:if="${userCurrentPage != null and userCurrentPage > 0}"
+                       th:href="@{/admin/dashboard(userPage=${userCurrentPage - 1}, userSize=10, role=${roleFilter}, userSearch=${userSearchQuery})}"
+                       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </a>
+                    <span th:if="${userCurrentPage == null or userCurrentPage == 0}"
+                          class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </span>
+
+                    <!-- Page Numbers -->
+                    <template th:if="${userTotalPages != null}" th:each="i : ${#numbers.sequence(0, userTotalPages - 1)}">
+                        <a th:href="@{/admin/dashboard(userPage=${i}, userSize=10, role=${roleFilter}, userSearch=${userSearchQuery})}"
+                           th:text="${i + 1}"
+                           th:class="${userCurrentPage != null and i == userCurrentPage} ? 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium' : 'px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700'"></a>
+                    </template>
+
+                    <!-- Next -->
+                    <a th:if="${userCurrentPage != null and userTotalPages != null and userCurrentPage < userTotalPages - 1}"
+                       th:href="@{/admin/dashboard(userPage=${userCurrentPage + 1}, userSize=10, role=${roleFilter}, userSearch=${userSearchQuery})}"
+                       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">
+                        Next <i class="fas fa-chevron-right ml-2"></i>
+                    </a>
+                    <span th:if="${userCurrentPage == null or userTotalPages == null or userCurrentPage >= userTotalPages - 1}"
+                          class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                        Next <i class="fas fa-chevron-right ml-2"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments Table Section -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold mb-4">Recent Appointments</h3>
+            <form method="get" action="/admin/dashboard" class="flex flex-col sm:flex-row gap-4">
+                <!-- Status Filter -->
+                <select name="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">
+                    <option value="">All Status</option>
+                    <option value="CONFIRMED" th:selected="${statusFilter == 'CONFIRMED'}">CONFIRMED</option>
+                    <option value="CANCELLED" th:selected="${statusFilter == 'CANCELLED'}">CANCELLED</option>
+                </select>
+                <!-- Search -->
+                <input type="text" name="appointmentSearch" th:value="${appointmentSearchQuery}" placeholder="Search by patient/doctor..." class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    <i class="fas fa-search mr-2"></i>Filter
+                </button>
+            </form>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200" id="appointmentsTable">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                <tr th:each="appt : ${appointments}">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${appt.id}">1</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${appt.patient != null ? appt.patient.email : 'N/A'}">John Doe</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${appt.doctor != null ? appt.doctor.doctorName : 'N/A'}">Dr. Smith</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${appt.appointmentDate}">2023-12-01</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span th:switch="${appt.status.name()}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                            <span th:case="'CONFIRMED'" class="bg-green-100 text-green-800" th:text="${appt.status.name()}">CONFIRMED</span>
+                            <span th:case="'CANCELLED'" class="bg-red-100 text-red-800" th:text="${appt.status.name()}">CANCELLED</span>
+                            <span th:case="*" class="bg-gray-100 text-gray-800" th:text="${appt.status.name()}">UNKNOWN</span>
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <a th:href="@{/admin/appointments/{id}/view(id=${appt.id})}" class="text-indigo-600 hover:text-indigo-900 mr-2">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+<!--                        <form th:if="${appt.status.name() == 'CONFIRMED'}" th:action="@{/admin/appointments/{id}/cancel(id=${appt.id})}" method="post" class="inline" onsubmit="return confirm('Are you sure you want to cancel this appointment?');">-->
+<!--                            <button type="submit" class="text-red-600 hover:text-red-900">-->
+<!--                                <i class="fas fa-times-circle"></i> Cancel-->
+<!--                            </button>-->
+<!--                        </form>-->
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination for Appointments -->
+        <div th:if="${appointmentTotalElements != null and appointmentTotalElements > 0}" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-sm text-gray-700">
+                    Showing
+                    <span class="font-semibold" th:text="${appointmentCurrentPage != null ? (appointmentCurrentPage * 10 + 1) : 1}">1</span>
+                    to
+                    <span class="font-semibold" th:text="${appointmentCurrentPage != null and appointmentTotalElements != null ? (((appointmentCurrentPage + 1) * 10 > appointmentTotalElements) ? appointmentTotalElements : (appointmentCurrentPage + 1) * 10) : 10}">10</span>
+                    of
+                    <span class="font-semibold" th:text="${appointmentTotalElements}">0</span> results
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- Previous -->
+                    <a th:if="${appointmentCurrentPage != null and appointmentCurrentPage > 0}"
+                       th:href="@{/admin/dashboard(appointmentPage=${appointmentCurrentPage - 1}, appointmentSize=10, statusFilter=${statusFilter}, appointmentSearch=${appointmentSearchQuery})}"
+                       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </a>
+                    <span th:if="${appointmentCurrentPage == null or appointmentCurrentPage == 0}"
+                          class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </span>
+
+                    <!-- Page Numbers -->
+                    <template th:if="${appointmentTotalPages != null}" th:each="i : ${#numbers.sequence(0, appointmentTotalPages - 1)}">
+                        <a th:href="@{/admin/dashboard(appointmentPage=${i}, appointmentSize=10, statusFilter=${statusFilter}, appointmentSearch=${appointmentSearchQuery})}"
+                           th:text="${i + 1}"
+                           th:class="${appointmentCurrentPage != null and i == appointmentCurrentPage} ? 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium' : 'px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700'"></a>
+                    </template>
+
+                    <!-- Next -->
+                    <a th:if="${appointmentCurrentPage != null and appointmentTotalPages != null and appointmentCurrentPage < appointmentTotalPages - 1}"
+                       th:href="@{/admin/dashboard(appointmentPage=${appointmentCurrentPage + 1}, appointmentSize=10, statusFilter=${statusFilter}, appointmentSearch=${appointmentSearchQuery})}"
+                       class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700">
+                        Next <i class="fas fa-chevron-right ml-2"></i>
+                    </a>
+                    <span th:if="${appointmentCurrentPage == null or appointmentTotalPages == null or appointmentCurrentPage >= appointmentTotalPages - 1}"
+                          class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                        Next <i class="fas fa-chevron-right ml-2"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts for Charts -->
+<script th:inline="javascript">
+    /* User Growth Chart */
+    const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+    const userGrowthData = /*[[${userGrowthData}]]*/ [];
+
+    // Extract labels and values from the backend data
+    const userLabels = userGrowthData.map(item => item.month || '');
+    const userValues = userGrowthData.map(item => item.count || 0);
+
+    new Chart(userGrowthCtx, {
+        type: 'line',
+        data: {
+            labels: userLabels.length > 0 ? userLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'New Users',
+                data: userValues.length > 0 ? userValues : [12, 19, 3, 5, 2, 3],
+                borderColor: 'rgb(99, 102, 241)',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    /* Appointment Pie Chart */
+    const appointmentCtx = document.getElementById('appointmentPieChart').getContext('2d');
+    const confirmedCount = /*[[${stats.confirmedAppointments}]]*/ 0;
+    const cancelledCount = /*[[${stats.cancelledAppointments}]]*/ 0;
+
+    new Chart(appointmentCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Confirmed', 'Cancelled'],
+            datasets: [{
+                data: [confirmedCount, cancelledCount],
+                backgroundColor: ['#10b981', '#ef4444']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    /* DataTables Initialization */
+    $(document).ready(function() {
+        $('#usersTable, #appointmentsTable').DataTable({
+            paging: false,
+            searching: false,
+            info: false,
+            ordering: false
+        });
+    });
+</script>
+
+</body>
+</html>

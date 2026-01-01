@@ -1,0 +1,271 @@
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title th:text="${doctor.doctorName} + ' - Check Availability'">Doctor Availability</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">-->
+<!--    <style>-->
+<!--        .calendar-date:hover { transform: scale(1.08); }-->
+<!--        .calendar-date.available { background: linear-gradient(135deg, #d4edda, #c3e6cb); }-->
+<!--        .calendar-date.unavailable { background: #f8d7da; }-->
+<!--        .calendar-date.selected {-->
+<!--            background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;-->
+<!--            color: white;-->
+<!--            transform: scale(1.12);-->
+<!--            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 min-h-screen">-->
+
+<!--&lt;!&ndash; Navbar &ndash;&gt;-->
+<!--<nav class="bg-white shadow-lg sticky top-0 z-50">-->
+<!--    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">-->
+<!--        <a href="/doctors" class="text-2xl font-bold text-indigo-600">-->
+<!--            <i class="fas fa-stethoscope mr-2"></i> MediCare-->
+<!--        </a>-->
+<!--        <div class="flex items-center gap-4">-->
+<!--            <a th:href="@{/doctors/{id}(id=${doctor.id})}" class="text-indigo-600 hover:underline">-->
+<!--                <i class="fas fa-arrow-left mr-1"></i> Back to Profile-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</nav>-->
+
+<!--<div class="max-w-7xl mx-auto p-6 mt-10">-->
+
+<!--    &lt;!&ndash; Doctor Header Card &ndash;&gt;-->
+<!--    <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">-->
+<!--        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-32 relative">-->
+<!--            <div class="absolute -bottom-12 left-10 w-28 h-28 bg-white rounded-full shadow-2xl flex items-center justify-center border-4 border-white">-->
+<!--                <i class="fas fa-user-md text-5xl text-indigo-600"></i>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="pt-16 pb-8 px-10">-->
+<!--            <h1 class="text-3xl font-bold text-gray-800" th:text="${doctor.doctorName}">Dr. Mohammad Rahman</h1>-->
+<!--            <p class="text-xl text-indigo-600 font-semibold" th:text="${doctor.speciality}">Cardiologist</p>-->
+<!--            <p class="text-gray-600 mt-2" th:text="${doctor.degree}">MBBS, MD (Cardiology)</p>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Main Content Grid &ndash;&gt;-->
+<!--    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">-->
+
+<!--        &lt;!&ndash; Left: Weekly Availability (Medium Size) &ndash;&gt;-->
+<!--        <div class="lg:col-span-1">-->
+<!--            <div class="bg-white rounded-2xl shadow-xl p-8 h-full">-->
+<!--                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">-->
+<!--                    <i class="fas fa-calendar-week text-indigo-600"></i>-->
+<!--                    Weekly Schedule-->
+<!--                </h2>-->
+
+<!--                <div class="space-y-4">-->
+<!--                    <div th:each="day : ${#arrays.toObjectArray(['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'])}"-->
+<!--                         class="flex justify-between items-center p-4 rounded-xl border-2 transition-all"-->
+<!--                         th:classappend="${availableDays.contains(day)} ? 'border-green-500 bg-green-50' : 'border-red-300 bg-red-50 opacity-75'">-->
+<!--                        <span class="font-semibold text-gray-700" th:text="${day}">Sunday</span>-->
+<!--                        <span class="text-sm font-medium"-->
+<!--                              th:text="${availableDays.contains(day)} ? ${timeSlots[day]} : 'Off Day'"-->
+<!--                              th:class="${availableDays.contains(day)} ? 'text-green-700' : 'text-red-600'">-->
+<!--                                9:00 AM - 5:00 PM-->
+<!--                            </span>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                <div class="mt-8 p-5 bg-indigo-50 rounded-xl border-l-4 border-indigo-600">-->
+<!--                    <p class="text-sm text-indigo-800">-->
+<!--                        <i class="fas fa-lightbulb mr-2"></i>-->
+<!--                        <strong>Tip:</strong> Click any date on the calendar to check availability and book an appointment.-->
+<!--                    </p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; Right: Calendar Section &ndash;&gt;-->
+<!--        <div class="lg:col-span-2">-->
+<!--            <div class="bg-white rounded-2xl shadow-xl p-8">-->
+<!--                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">-->
+<!--                    <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">-->
+<!--                        <i class="fas fa-calendar-alt text-indigo-600"></i>-->
+<!--                        Availability Calendar-->
+<!--                    </h2>-->
+
+<!--                    &lt;!&ndash; Small Date Picker (Right Side) &ndash;&gt;-->
+<!--                    <div class="flex items-center gap-3">-->
+<!--                        <label class="text-sm font-medium text-gray-600">Go to Date:</label>-->
+<!--                        <input type="date" id="datePicker" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">-->
+<!--                    </div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Calendar Header &ndash;&gt;-->
+<!--                <div class="flex justify-between items-center mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-xl">-->
+<!--                    <button onclick="changeMonth(-1)" class="hover:bg-white/20 px-4 py-2 rounded-lg transition">-->
+<!--                        <i class="fas fa-chevron-left"></i>-->
+<!--                    </button>-->
+<!--                    <h3 id="currentMonthYear" class="text-xl font-bold">November 2025</h3>-->
+<!--                    <button onclick="changeMonth(1)" class="hover:bg-white/20 px-4 py-2 rounded-lg transition">-->
+<!--                        <i class="fas fa-chevron-right"></i>-->
+<!--                    </button>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Weekdays &ndash;&gt;-->
+<!--                <div class="grid grid-cols-7 gap-2 text-center font-bold text-indigo-700 mb-3">-->
+<!--                    <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Calendar Grid &ndash;&gt;-->
+<!--                <div id="calendarGrid" class="grid grid-cols-7 gap-3"></div>-->
+
+<!--                &lt;!&ndash; Legend &ndash;&gt;-->
+<!--                <div class="flex justify-center gap-8 mt-8 text-sm">-->
+<!--                    <div class="flex items-center gap-2"><div class="w-5 h-5 rounded bg-green-100 border-2 border-green-500"></div> Available</div>-->
+<!--                    <div class="flex items-center gap-2"><div class="w-5 h-5 rounded bg-red-100 border-2 border-red-500"></div> Off Day</div>-->
+<!--                    <div class="flex items-center gap-2"><div class="w-5 h-5 rounded bg-yellow-100 border-2 border-yellow-500"></div> Today</div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Result Display &ndash;&gt;-->
+<!--                <div id="resultDisplay" class="mt-8 p-6 rounded-xl border-2 hidden animate-fade-in"></div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    const availableDays = [0, 1, 2, 3, 6]; // Sun, Mon, Tue, Wed, Sat (0=Sunday)-->
+<!--    const timeSlots = {-->
+<!--        0: "9:00 AM - 5:00 PM",-->
+<!--        1: "9:00 AM - 1:00 PM",-->
+<!--        2: "9:00 AM - 5:00 PM",-->
+<!--        3: "9:00 AM - 5:00 PM",-->
+<!--        6: "9:00 AM - 5:00 PM"-->
+<!--    };-->
+
+<!--    let currentDate = new Date();-->
+<!--    let selectedDate = null;-->
+
+<!--    function generateCalendar() {-->
+<!--        const year = currentDate.getFullYear();-->
+<!--        const month = currentDate.getMonth();-->
+<!--        const today = new Date();-->
+<!--        today.setHours(0,0,0,0);-->
+
+<!--        document.getElementById('currentMonthYear').textContent =-->
+<!--            currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });-->
+
+<!--        const firstDay = new Date(year, month, 1).getDay();-->
+<!--        const daysInMonth = new Date(year, month + 1, 0).getDate();-->
+
+<!--        const grid = document.getElementById('calendarGrid');-->
+<!--        grid.innerHTML = '';-->
+
+<!--        // Empty cells before 1st-->
+<!--        for (let i = 0; i < firstDay; i++) {-->
+<!--            grid.innerHTML += '<div></div>';-->
+<!--        }-->
+
+<!--        // Days of month-->
+<!--        for (let day = 1; day <= daysInMonth; day++) {-->
+<!--            const date = new Date(year, month, day);-->
+<!--            const dayOfWeek = date.getDay();-->
+<!--            const isAvailable = availableDays.includes(dayOfWeek);-->
+<!--            const isToday = date.toDateString() === today.toDateString();-->
+<!--            const isPast = date < today;-->
+
+<!--            const dateCell = document.createElement('div');-->
+<!--            dateCell.className = `calendar-date aspect-square flex flex-col items-center justify-center rounded-xl text-lg font-semibold cursor-pointer transition-all relative-->
+<!--                ${isPast ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : ''}-->
+<!--                ${!isPast && isAvailable ? 'available border-2 border-green-500' : ''}-->
+<!--                ${!isPast && !isAvailable ? 'unavailable border-2 border-red-400' : ''}-->
+<!--                ${isToday ? 'bg-yellow-100 border-2 border-yellow-500' : ''}`;-->
+
+<!--            if (isToday) {-->
+<!--                dateCell.innerHTML = `<small class="absolute top-1 text-xs font-bold text-amber-700">Today</small>${day}`;-->
+<!--            } else {-->
+<!--                dateCell.innerHTML = day;-->
+<!--                if (!isPast) {-->
+<!--                    dateCell.innerHTML += isAvailable ? '<small class="text-green-600 mt-1">Available</small>' : '<small class="text-red-600 mt-1">Off</small>';-->
+<!--                }-->
+<!--            }-->
+
+<!--            if (!isPast) {-->
+<!--                dateCell.onclick = () => selectDate(date, isAvailable);-->
+<!--            }-->
+
+<!--            grid.appendChild(dateCell);-->
+<!--        }-->
+<!--    }-->
+
+<!--    function selectDate(date, isAvailable) {-->
+<!--        selectedDate = date;-->
+<!--        document.querySelectorAll('.calendar-date').forEach(el => el.classList.remove('selected'));-->
+<!--        event.target.closest('.calendar-date').classList.add('selected');-->
+
+<!--        showResult(date, isAvailable);-->
+<!--    }-->
+
+<!--    function showResult(date, isAvailable) {-->
+<!--        const result = document.getElementById('resultDisplay');-->
+<!--        const dayName = date.toLocaleString('default', { weekday: 'long' });-->
+<!--        const dateStr = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });-->
+
+<!--        result.className = `mt-8 p-6 rounded-xl border-2 block animate-fade-in ${isAvailable ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`;-->
+
+<!--        if (isAvailable) {-->
+<!--            const time = timeSlots[date.getDay()];-->
+<!--            result.innerHTML = `-->
+<!--                <div class="flex items-center gap-4 mb-4">-->
+<!--                    <i class="fas fa-check-circle text-5xl text-green-600"></i>-->
+<!--                    <div>-->
+<!--                        <h3 class="text-2xl font-bold text-gray-800">Doctor is Available!</h3>-->
+<!--                        <p class="text-lg text-gray-600">${dayName}, ${dateStr}</p>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="bg-white px-6 py-3 rounded-lg inline-block font-semibold text-green-700">-->
+<!--                    <i class="fas fa-clock mr-2"></i> ${time}-->
+<!--                </div>-->
+<!--                <button onclick="bookNow()" class="mt-5 px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-bold hover:shadow-xl transition">-->
+<!--                    Book Appointment Now-->
+<!--                </button>-->
+<!--            `;-->
+<!--        } else {-->
+<!--            result.innerHTML = `-->
+<!--                <div class="flex items-center gap-4 mb-4">-->
+<!--                    <i class="fas fa-times-circle text-5xl text-red-600"></i>-->
+<!--                    <div>-->
+<!--                        <h3 class="text-2xl font-bold text-gray-800">Not Available</h3>-->
+<!--                        <p class="text-lg text-gray-600">${dayName}, ${dateStr}</p>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <p class="text-gray-700">The doctor is off on this day. Please select another date.</p>-->
+<!--            `;-->
+<!--        }-->
+<!--    }-->
+
+<!--    function changeMonth(dir) {-->
+<!--        currentDate.setMonth(currentDate.getMonth() + dir);-->
+<!--        generateCalendar();-->
+<!--        document.getElementById('resultDisplay').classList.add('hidden');-->
+<!--    }-->
+
+<!--    function bookNow() {-->
+<!--        if (selectedDate) {-->
+<!--            alert(`Appointment booked successfully!\n\nDate: ${selectedDate.toLocaleDateString()}\nTime: ${timeSlots[selectedDate.getDay()]}\n\nWe will contact you soon.`);-->
+<!--        }-->
+<!--    }-->
+
+<!--    // Date picker integration-->
+<!--    document.getElementById('datePicker').addEventListener('change', function() {-->
+<!--        const selected = new Date(this.value);-->
+<!--        if (!isNaN(selected)) {-->
+<!--            currentDate = new Date(selected.getFullYear(), selected.getMonth(), 1);-->
+<!--            generateCalendar();-->
+<!--        }-->
+<!--    });-->
+
+<!--    // Init-->
+<!--    generateCalendar();-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
