@@ -74,22 +74,82 @@ src/main/java/com/example/doctor_patient_management_system/
 │   ├── HomeController.java
 │   └── PatientController.java
 ├── dto/                 # Data Transfer Objects
+│   ├── AuthLogin.java
+│   ├── AuthRequest.java
+│   ├── AuthResponse.java
+│   ├── AvailableDoctorSummary.java
+│   ├── BookAppointmentRequest.java
+│   ├── BookAppointmentResponse.java
+│   ├── BookedSlotsDto.java
+│   ├── BookingMessage.java
+│   ├── CancelAppointmentResponse.java
+│   ├── DashboardStats.java
+│   ├── DayStatus.java
+│   ├── DoctorAppointmentDto.java
+│   ├── DoctorDto.java
+│   ├── DoctorWithRatingDto.java
+│   ├── PatientDto.java
+│   ├── RegistrationMessage.java
+│   ├── ReviewDto.java
+│   ├── ReviewSubmitResponse.java
+│   ├── TimeSlot.java
+│   └── UserDto.java
 ├── model/               # Domain entities
-│   ├── User.java
-│   ├── Doctor.java
-│   ├── Patient.java
 │   ├── Appointment.java
+│   ├── Doctor.java
+│   ├── DoctorAvailability.java
+│   ├── DoctorAvailabilityOverride.java
+│   ├── MessageOutbox.java
+│   ├── Patient.java
 │   ├── Prescription.java
 │   ├── Review.java
+│   ├── User.java
 │   └── enumeration/
+│       ├── AppointmentStatus.java
+│       └── Role.java
 ├── repository/          # Data access layer
+│   ├── AppointmentRepository.java
+│   ├── DoctorAvailabilityOverrideRepository.java
+│   ├── DoctorAvailabilityRepository.java
+│   ├── DoctorRepository.java
+│   ├── MessageOutboxRepository.java
+│   ├── PatientRepository.java
+│   ├── PrescriptionRepository.java
+│   ├── ReviewRepository.java
+│   └── UserRepository.java
 ├── security/            # Security components
-│   ├── JwtUtil.java
 │   ├── JwtAuthenticationFilter.java
-│   ├── UserPrincipal.java
-│   └── SecurityConfig.java
+│   ├── JwtUtil.java
+│   ├── SecurityConfig.java
+│   └── UserPrincipal.java
 └── service/             # Business logic layer
-    ├── impl/            # Service implementations
+    ├── AdminService.java (interface)
+    ├── AdminServiceImpl.java
+    ├── AppointmentService.java (interface)
+    ├── AppointmentServiceImpl.java
+    ├── AuthService.java (interface)
+    ├── AuthServiceImpl.java
+    ├── CustomUserDetailsServiceImpl.java
+    ├── DoctorAvailabilityService.java (interface)
+    ├── DoctorAvailabilityServiceImpl.java
+    ├── DoctorCalendarService.java (interface)
+    ├── DoctorCalendarServiceImpl.java
+    ├── DoctorService.java (interface)
+    ├── DoctorServiceImpl.java
+    ├── DoctorSlotService.java (interface)
+    ├── DoctorSlotServiceImpl.java
+    ├── MessageOutboxScheduler.java (interface)
+    ├── MessageOutboxSchedulerImpl.java
+    ├── PatientService.java (interface)
+    ├── PatientServiceImpl.java
+    ├── PrescriptionService.java (interface)
+    ├── PrescriptionServiceImpl.java
+    ├── RabbitConsumerService.java (interface)
+    ├── RabbitConsumerServiceImpl.java
+    ├── RabbitProducerService.java (interface)
+    ├── RabbitProducerServiceImpl.java
+    ├── UserService.java (interface)
+    └── UserServiceImpl.java
 ```
 
 ## Core Modules
