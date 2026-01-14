@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg { background: linear-gradient(to bottom right, #eff6ff, #e0e7ff); }
+        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+
+<!-- Modern Navbar -->
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/" class="text-xl font-bold text-indigo-600 flex items-center gap-2">
+            <i class="fas fa-heartbeat"></i> MediCare Admin
+        </a>
+        <div class="flex items-center gap-8 flex-wrap">
+            <a href="/" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a th:href="@{/auth/logout}" class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-7xl mx-auto p-6 mt-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>
+
+    <!-- Alerts Section -->
+    <div th:if="${alerts != null and !alerts.isEmpty()}" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">
+        <div class="flex">
+            <div class="ml-3">
+                <ul class="mb-0">
+                    <li th:each="alert : ${alerts}" th:text="${alert}"></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${message}" class="bg-green-100 border-l-4 border-green-500 text-green-700 px-6 py-4 rounded-lg mb-6 shadow-lg flex items-center">
+        <i class="fas fa-check-circle mr-3 text-xl"></i>
+        <span th:text="${message}"></span>
+    </div>
+
+    <div th:if="${error}" class="bg-red-100 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg mb-6 shadow-lg flex items-center">
+        <i class="fas fa-times-circle mr-3 text-xl"></i>
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-blue-100">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Users</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalUsers}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100">
+                    <i class="fas fa-user-md text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Doctors</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalDoctors}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-indigo-100">
+                    <i class="fas fa-user-injured text-indigo-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Patients</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalPatients}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-yellow-100">
+                    <i class="fas fa-exclamation-circle text-yellow-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Incomplete Profiles</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${incompleteProfiles}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-gray-100">
+                    <i class="fas fa-calendar-check text-gray-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Appointments</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalAppointments}">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center">
+                <div class="p-3 rounded-full bg-green-100">
+                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Confirmed Appts</p>
+                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.confirmedAppointments}">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table Section with Live Search -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold mb-4">User Management</h3>
+            <form id="userFilterForm" class="flex flex-col sm:flex-row gap-4">
+                <select name="role" id="roleFilter" onchange="filterUsers()" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">All Roles</option>
+                    <option value="ADMIN" th:selected="${roleFilter == 'ADMIN'}">ADMIN</option>
+                    <option value="DOCTOR" th:selected="${roleFilter == 'DOCTOR'}">DOCTOR</option>
+                    <option value="PATIENT" th:selected="${roleFilter == 'PATIENT'}">PATIENT</option>
+                </select>
+                <div class="relative flex-1">
+                    <input type="text" name="userSearch" id="userSearch" th:value="${userSearchQuery}"
+                           placeholder="Search by email..."
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:ring-indigo-500 focus:border-indigo-500">
+                    <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </form>
+        </div>
+
+        <!-- Loading Indicator for Users -->
+        <div id="userLoadingIndicator" class="hidden p-6 text-center">
+            <i class="fas fa-spinner fa-spin text-indigo-600 text-2xl"></i>
+            <p class="mt-2 text-gray-600">Loading users...</p>
+        </div>
+
+        <div id="usersContent">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="usersTable">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tr th:each="user : ${users}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.id}">1</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.email}">user@example.com</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+        <span th:switch="${user.role.name()}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+            <span th:case="'ADMIN'" class="bg-red-100 text-red-800" th:text="${user.role.name()}">ADMIN</span>
+            <span th:case="'DOCTOR'" class="bg-green-100 text-green-800" th:text="${user.role.name()}">DOCTOR</span>
+            <span th:case="*" class="bg-blue-100 text-blue-800" th:text="${user.role.name()}">PATIENT</span>
+        </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm" th:if="${user.complete}">
+                            <span class="text-green-600 font-medium">Completed</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm" th:unless="${user.complete}">
+                            <span class="text-red-600 font-medium">Not Completed</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                <button type="submit" class="text-red-600 hover:text-red-900 flex items-center gap-1">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination for Users -->
+            <div th:if="${userTotalElements != null and userTotalElements > 0}" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-sm text-gray-700">
+                        Showing
+                        <span class="font-semibold" th:text="${userCurrentPage != null ? (userCurrentPage * 10 + 1) : 1}">1</span>
+                        to
+                        <span class="font-semibold" th:text="${userCurrentPage != null and userTotalElements != null ? (((userCurrentPage + 1) * 10 > userTotalElements) ? userTotalElements : (userCurrentPage + 1) * 10) : 10}">10</span>
+                        of
+                        <span class="font-semibold" th:text="${userTotalElements}">0</span> results
+                    </div>
+                    <div class="flex items-center gap-2" id="userPaginationControls">
+                        <!-- Previous -->
+                        <a th:if="${userCurrentPage != null and userCurrentPage > 0}"
+                           th:onclick="'filterUsers(event, ' + ${userCurrentPage - 1} + ')'"
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer">
+                            <i class="fas fa-chevron-left mr-2"></i> Previous
+                        </a>
+                        <span th:if="${userCurrentPage == null or userCurrentPage == 0}"
+                              class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                            <i class="fas fa-chevron-left mr-2"></i> Previous
+                        </span>
+
+                        <!-- Page Numbers -->
+                        <template th:if="${userTotalPages != null}" th:each="i : ${#numbers.sequence(0, userTotalPages - 1)}">
+                            <a th:onclick="'filterUsers(event, ' + ${i} + ')'"
+                               th:text="${i + 1}"
+                               th:class="${userCurrentPage != null and i == userCurrentPage} ? 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium cursor-pointer' : 'px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer'"></a>
+                        </template>
+
+                        <!-- Next -->
+                        <a th:if="${userCurrentPage != null and userTotalPages != null and userCurrentPage < userTotalPages - 1}"
+                           th:onclick="'filterUsers(event, ' + ${userCurrentPage + 1} + ')'"
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer">
+                            Next <i class="fas fa-chevron-right ml-2"></i>
+                        </a>
+                        <span th:if="${userCurrentPage == null or userTotalPages == null or userCurrentPage >= userTotalPages - 1}"
+                              class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                            Next <i class="fas fa-chevron-right ml-2"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments Management Section -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-lg font-semibold mb-4"><i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>Appointments Management</h3>
+            <form id="filterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <select name="statusFilter" id="statusFilter" onchange="filterAppointments()" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">
+                    <option value="">All Status</option>
+                    <option value="CONFIRMED" th:selected="${statusFilter == 'CONFIRMED'}">CONFIRMED</option>
+                    <option value="CANCELLED" th:selected="${statusFilter == 'CANCELLED'}">CANCELLED</option>
+                </select>
+                <input type="date" name="startDate" id="startDate" th:value="${startDate}"
+                       placeholder="Start Date"
+                       onchange="checkDateRange()"
+                       class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">
+                <input type="date" name="endDate" id="endDate" th:value="${endDate}"
+                       placeholder="End Date"
+                       onchange="checkDateRange()"
+                       class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">
+                <input type="text" name="appointmentSearch" id="appointmentSearch" th:value="${appointmentSearchQuery}"
+                       placeholder="Search patient/doctor..."
+                       class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">
+                <button type="button" onclick="filterAppointments()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center">
+                    <i class="fas fa-search mr-2"></i>Filter
+                </button>
+            </form>
+        </div>
+
+        <div id="loadingIndicator" class="hidden p-6 text-center">
+            <i class="fas fa-spinner fa-spin text-indigo-600 text-2xl"></i>
+            <p class="mt-2 text-gray-600">Loading appointments...</p>
+        </div>
+
+        <div id="appointmentsContent">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200" id="appointmentsTable">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Doctor Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tr th:each="appt : ${appointments}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                            th:text="${appt.patientProfile != null ? appt.patientProfile.patientName : 'N/A'}">John Doe</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+        <span th:switch="${appt.appointment.status.name()}"
+              class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+            <span th:case="'CONFIRMED'" class="bg-green-100 text-green-800" th:text="${appt.appointment.status.name()}">CONFIRMED</span>
+            <span th:case="'CANCELLED'" class="bg-red-100 text-red-800" th:text="${appt.appointment.status.name()}">CANCELLED</span>
+            <span th:case="*" class="bg-gray-100 text-gray-800" th:text="${appt.appointment.status.name()}">UNKNOWN</span>
+        </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                            th:text="${appt.appointment.doctor != null ? appt.appointment.doctor.doctorName : 'N/A'}">Dr. Smith</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                            th:text="${appt.appointment.appointmentDate != null ? #temporals.format(appt.appointment.appointmentDate, 'dd MMM yyyy') : 'N/A'}">01 Jan 2024</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <span th:if="${appt.prescription != null and appt.appointment.status.name() != 'CANCELLED'}">
+            <a th:href="@{/admin/appointments/{id}/view(id=${appt.appointment.id})}"
+               class="text-indigo-600 hover:text-indigo-900 flex items-center gap-1">
+                <i class="fas fa-file-prescription"></i> View Prescription
+            </a>
+        </span>
+                            <span th:if="${appt.prescription == null and appt.appointment.status.name() == 'CONFIRMED'}"
+                                  class="text-gray-500 italic text-xs">Prescription not provided yet</span>
+                            <span th:if="${appt.appointment.status.name() == 'CANCELLED'}"
+                                  class="text-red-500 italic text-xs">Cancelled - No prescription</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${appointmentTotalElements != null and appointmentTotalElements > 0}" class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="text-sm text-gray-700">
+                        Showing
+                        <span class="font-semibold" th:text="${appointmentCurrentPage != null ? (appointmentCurrentPage * 10 + 1) : 1}">1</span>
+                        to
+                        <span class="font-semibold" th:text="${appointmentCurrentPage != null and appointmentTotalElements != null ? (((appointmentCurrentPage + 1) * 10 > appointmentTotalElements) ? appointmentTotalElements : (appointmentCurrentPage + 1) * 10) : 10}">10</span>
+                        of
+                        <span class="font-semibold" th:text="${appointmentTotalElements}">0</span> results
+                    </div>
+                    <div class="flex items-center gap-2" id="paginationControls">
+                        <a th:if="${appointmentCurrentPage != null and appointmentCurrentPage > 0}"
+                           th:onclick="'filterAppointments(event, ' + ${appointmentCurrentPage - 1} + ')'"
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer">
+                            <i class="fas fa-chevron-left mr-2"></i> Previous
+                        </a>
+                        <span th:if="${appointmentCurrentPage == null or appointmentCurrentPage == 0}"
+                              class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </span>
+                        <template th:if="${appointmentTotalPages != null}" th:each="i : ${#numbers.sequence(0, appointmentTotalPages - 1)}">
+                            <a th:onclick="'filterAppointments(event, ' + ${i} + ')'"
+                               th:text="${i + 1}"
+                               th:class="${appointmentCurrentPage != null and i == appointmentCurrentPage} ? 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium cursor-pointer' : 'px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer'"></a>
+                        </template>
+                        <a th:if="${appointmentCurrentPage != null and appointmentTotalPages != null and appointmentCurrentPage < appointmentTotalPages - 1}"
+                           th:onclick="'filterAppointments(event, ' + ${appointmentCurrentPage + 1} + ')'"
+                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer">
+                            Next <i class="fas fa-chevron-right ml-2"></i>
+                        </a>
+                        <span th:if="${appointmentCurrentPage == null or appointmentTotalPages == null or appointmentCurrentPage >= appointmentTotalPages - 1}"
+                              class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                        Next <i class="fas fa-chevron-right ml-2"></i>
+                    </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#usersTable, #appointmentsTable').DataTable({
+            paging: false,
+            searching: false,
+            info: false,
+            ordering: false
+        });
+    });
+</script>
+
+<!-- Live Search Script for Users -->
+<script>
+    let userCurrentPage = 0;
+    let searchTimeout = null;
+
+    // Add event listener for live search
+    document.getElementById('userSearch').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            userCurrentPage = 0; // Reset to first page on new search
+            filterUsers();
+        }, 20); // Wait 20ms after user stops typing
+    });
+
+    function filterUsers(event, page = 0) {
+        if (event) {
+            event.preventDefault();
+        }
+
+        userCurrentPage = page;
+
+        const roleFilter = document.getElementById('roleFilter').value;
+        const searchQuery = document.getElementById('userSearch').value;
+
+        const params = new URLSearchParams();
+        if (roleFilter) params.append('role', roleFilter);
+        if (searchQuery) params.append('userSearch', searchQuery);
+        params.append('userPage', page);
+        params.append('userSize', '10');
+
+        document.getElementById('userLoadingIndicator').classList.remove('hidden');
+        document.getElementById('usersContent').style.opacity = '0.5';
+
+        fetch('/admin/dashboard?' + params.toString(), {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('#usersContent');
+
+            if (newContent) {
+                document.getElementById('usersContent').innerHTML = newContent.innerHTML;
+                if ($.fn.DataTable.isDataTable('#usersTable')) {
+                    $('#usersTable').DataTable().destroy();
+                }
+                $('#usersTable').DataTable({
+                    paging: false,
+                    searching: false,
+                    info: false,
+                    ordering: false
+                });
+            }
+
+            document.getElementById('userLoadingIndicator').classList.add('hidden');
+            document.getElementById('usersContent').style.opacity = '1';
+        })
+        .catch(error => {
+            console.error('Error filtering users:', error);
+            document.getElementById('userLoadingIndicator').classList.add('hidden');
+            document.getElementById('usersContent').style.opacity = '1';
+            alert('Error loading users. Please try again.');
+        });
+    }
+</script>
+
+<!--For Appointment Management-->
+<script>
+    let currentPage = 0;
+
+    function checkDateRange() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        // Only submit if both dates are filled
+        if (startDate && endDate) {
+            filterAppointments();
+        }
+    }
+
+    function filterAppointments(event, page = 0) {
+        if (event) {
+            event.preventDefault();
+        }
+
+        currentPage = page;
+
+        // Get filter values
+        const statusFilter = document.getElementById('statusFilter').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const searchQuery = document.getElementById('appointmentSearch').value;
+
+        // Build query parameters
+        const params = new URLSearchParams();
+        if (statusFilter) params.append('statusFilter', statusFilter);
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        if (searchQuery) params.append('appointmentSearch', searchQuery);
+        params.append('appointmentPage', page);
+        params.append('appointmentSize', '10');
+
+        // Show loading indicator
+        document.getElementById('loadingIndicator').classList.remove('hidden');
+        document.getElementById('appointmentsContent').style.opacity = '0.5';
+
+        // Make AJAX request
+        fetch('/admin/dashboard?' + params.toString(), {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Parse the response and extract the appointments table content
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('#appointmentsContent');
+
+            if (newContent) {
+                document.getElementById('appointmentsContent').innerHTML = newContent.innerHTML;
+                // Re-initialize DataTable after content update
+                if ($.fn.DataTable.isDataTable('#appointmentsTable')) {
+                    $('#appointmentsTable').DataTable().destroy();
+                }
+                $('#appointmentsTable').DataTable({
+                    paging: false,
+                    searching: false,
+                    info: false,
+                    ordering: false
+                });
+            }
+
+            // Hide loading indicator
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('appointmentsContent').style.opacity = '1';
+        })
+        .catch(error => {
+            console.error('Error filtering appointments:', error);
+            document.getElementById('loadingIndicator').classList.add('hidden');
+            document.getElementById('appointmentsContent').style.opacity = '1';
+            alert('Error loading appointments. Please try again.');
+        });
+    }
+</script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Admin Dashboard</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">-->
+<!--    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
+<!--    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>-->
+<!--    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">-->
+<!--    <style>-->
+<!--        .gradient-bg { background: linear-gradient(to bottom right, #eff6ff, #e0e7ff); }-->
+<!--        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }-->
+<!--        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="gradient-bg min-h-screen">-->
+
+<!--&lt;!&ndash; Modern Navbar &ndash;&gt;-->
+<!--<nav class="bg-white shadow-md sticky top-0 z-10">-->
+<!--    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">-->
+<!--        <a href="/" class="text-xl font-bold text-indigo-600 flex items-center gap-2">-->
+<!--            <i class="fas fa-heartbeat"></i> MediCare Admin-->
+<!--        </a>-->
+<!--        <div class="flex items-center gap-8 flex-wrap">-->
+<!--            <a th:href="@{/auth/logout}" class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">-->
+<!--                <i class="fas fa-sign-out-alt"></i> Logout-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</nav>-->
+
+<!--<div class="max-w-7xl mx-auto p-6 mt-8">-->
+<!--    <h1 class="text-3xl font-bold text-gray-800 mb-6">Admin Dashboard</h1>-->
+
+<!--    &lt;!&ndash; Alerts Section &ndash;&gt;-->
+<!--    <div th:if="${alerts != null and !alerts.isEmpty()}" class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">-->
+<!--        <div class="flex">-->
+<!--            <div class="ml-3">-->
+<!--                <ul class="mb-0">-->
+<!--                    <li th:each="alert : ${alerts}" th:text="${alert}"></li>-->
+<!--                </ul>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    <div th:if="${message}" class="bg-green-100 border-l-4 border-green-500 text-green-700 px-6 py-4 rounded-lg mb-6 shadow-lg flex items-center">-->
+<!--        <i class="fas fa-check-circle mr-3 text-xl"></i>-->
+<!--        <span th:text="${message}"></span>-->
+<!--    </div>-->
+
+<!--    <div th:if="${error}" class="bg-red-100 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-lg mb-6 shadow-lg flex items-center">-->
+<!--        <i class="fas fa-times-circle mr-3 text-xl"></i>-->
+<!--        <span th:text="${error}"></span>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Quick Stats Cards &ndash;&gt;-->
+<!--    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">-->
+<!--        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">-->
+<!--            <div class="flex items-center">-->
+<!--                <div class="p-3 rounded-full bg-blue-100">-->
+<!--                    <i class="fas fa-users text-blue-600 text-xl"></i>-->
+<!--                </div>-->
+<!--                <div class="ml-4">-->
+<!--                    <p class="text-sm font-medium text-gray-600">Total Users</p>-->
+<!--                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalUsers}">0</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">-->
+<!--            <div class="flex items-center">-->
+<!--                <div class="p-3 rounded-full bg-green-100">-->
+<!--                    <i class="fas fa-user-md text-green-600 text-xl"></i>-->
+<!--                </div>-->
+<!--                <div class="ml-4">-->
+<!--                    <p class="text-sm font-medium text-gray-600">Total Doctors</p>-->
+<!--                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalDoctors}">0</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">-->
+<!--            <div class="flex items-center">-->
+<!--                <div class="p-3 rounded-full bg-indigo-100">-->
+<!--                    <i class="fas fa-user-injured text-indigo-600 text-xl"></i>-->
+<!--                </div>-->
+<!--                <div class="ml-4">-->
+<!--                    <p class="text-sm font-medium text-gray-600">Total Patients</p>-->
+<!--                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalPatients}">0</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">-->
+<!--            <div class="flex items-center">-->
+<!--                <div class="p-3 rounded-full bg-yellow-100">-->
+<!--                    <i class="fas fa-exclamation-circle text-yellow-600 text-xl"></i>-->
+<!--                </div>-->
+<!--                <div class="ml-4">-->
+<!--                    <p class="text-sm font-medium text-gray-600">Incomplete Profiles</p>-->
+<!--                    <p class="text-2xl font-bold text-gray-900" th:text="${incompleteProfiles}">0</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">-->
+<!--            <div class="flex items-center">-->
+<!--                <div class="p-3 rounded-full bg-gray-100">-->
+<!--                    <i class="fas fa-calendar-check text-gray-600 text-xl"></i>-->
+<!--                </div>-->
+<!--                <div class="ml-4">-->
+<!--                    <p class="text-sm font-medium text-gray-600">Total Appointments</p>-->
+<!--                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.totalAppointments}">0</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">-->
+<!--            <div class="flex items-center">-->
+<!--                <div class="p-3 rounded-full bg-green-100">-->
+<!--                    <i class="fas fa-check-circle text-green-600 text-xl"></i>-->
+<!--                </div>-->
+<!--                <div class="ml-4">-->
+<!--                    <p class="text-sm font-medium text-gray-600">Confirmed Appts</p>-->
+<!--                    <p class="text-2xl font-bold text-gray-900" th:text="${stats.confirmedAppointments}">0</p>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Users Table Section &ndash;&gt;-->
+<!--    <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">-->
+<!--        <div class="p-6 border-b border-gray-200">-->
+<!--            <h3 class="text-lg font-semibold mb-4">User Management</h3>-->
+<!--            <form id="userFilterForm" class="flex flex-col sm:flex-row gap-4">-->
+<!--                <select name="role" id="roleFilter" onchange="filterUsers()" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">-->
+<!--                    <option value="">All Roles</option>-->
+<!--                    <option value="ADMIN" th:selected="${roleFilter == 'ADMIN'}">ADMIN</option>-->
+<!--                    <option value="DOCTOR" th:selected="${roleFilter == 'DOCTOR'}">DOCTOR</option>-->
+<!--                    <option value="PATIENT" th:selected="${roleFilter == 'PATIENT'}">PATIENT</option>-->
+<!--                </select>-->
+<!--                <input type="text" name="userSearch" id="userSearch" th:value="${userSearchQuery}" placeholder="Search by email..." class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">-->
+<!--                <button type="button" onclick="filterUsers()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">-->
+<!--                    <i class="fas fa-search mr-2"></i>Filter-->
+<!--                </button>-->
+<!--            </form>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; Loading Indicator for Users &ndash;&gt;-->
+<!--        <div id="userLoadingIndicator" class="hidden p-6 text-center">-->
+<!--            <i class="fas fa-spinner fa-spin text-indigo-600 text-2xl"></i>-->
+<!--            <p class="mt-2 text-gray-600">Loading users...</p>-->
+<!--        </div>-->
+
+<!--        <div id="usersContent">-->
+<!--            <div class="overflow-x-auto">-->
+<!--                <table class="min-w-full divide-y divide-gray-200" id="usersTable">-->
+<!--                    <thead class="bg-gray-50">-->
+<!--                    <tr>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>-->
+<!--                    </tr>-->
+<!--                    </thead>-->
+
+<!--                    <tbody class="bg-white divide-y divide-gray-200">-->
+<!--                    <tr th:each="user : ${users}">-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.id}">1</td>-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900" th:text="${user.email}">user@example.com</td>-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap">-->
+<!--        <span th:switch="${user.role.name()}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">-->
+<!--            <span th:case="'ADMIN'" class="bg-red-100 text-red-800" th:text="${user.role.name()}">ADMIN</span>-->
+<!--            <span th:case="'DOCTOR'" class="bg-green-100 text-green-800" th:text="${user.role.name()}">DOCTOR</span>-->
+<!--            <span th:case="*" class="bg-blue-100 text-blue-800" th:text="${user.role.name()}">PATIENT</span>-->
+<!--        </span>-->
+<!--                        </td>-->
+<!--                        &lt;!&ndash; UPDATED: Text-based status with conditional styling &ndash;&gt;-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm" th:if="${user.complete}">-->
+<!--                            <span class="text-green-600 font-medium">Completed</span>-->
+<!--                        </td>-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm" th:unless="${user.complete}">-->
+<!--                            <span class="text-red-600 font-medium">Not Completed</span>-->
+<!--                        </td>-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">-->
+<!--                            <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?');">-->
+<!--                                <button type="submit" class="text-red-600 hover:text-red-900 flex items-center gap-1">-->
+<!--                                    <i class="fas fa-trash"></i> Delete-->
+<!--                                </button>-->
+<!--                            </form>-->
+<!--                        </td>-->
+<!--                    </tr>-->
+<!--                    </tbody>-->
+<!--                </table>-->
+<!--            </div>-->
+<!--            &lt;!&ndash; Pagination for Users &ndash;&gt;-->
+<!--            <div th:if="${userTotalElements != null and userTotalElements > 0}" class="px-6 py-4 bg-gray-50 border-t border-gray-200">-->
+<!--                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">-->
+<!--                    <div class="text-sm text-gray-700">-->
+<!--                        Showing-->
+<!--                        <span class="font-semibold" th:text="${userCurrentPage != null ? (userCurrentPage * 10 + 1) : 1}">1</span>-->
+<!--                        to-->
+<!--                        <span class="font-semibold" th:text="${userCurrentPage != null and userTotalElements != null ? (((userCurrentPage + 1) * 10 > userTotalElements) ? userTotalElements : (userCurrentPage + 1) * 10) : 10}">10</span>-->
+<!--                        of-->
+<!--                        <span class="font-semibold" th:text="${userTotalElements}">0</span> results-->
+<!--                    </div>-->
+<!--                    <div class="flex items-center gap-2" id="userPaginationControls">-->
+<!--                        &lt;!&ndash; Previous &ndash;&gt;-->
+<!--                        <a th:if="${userCurrentPage != null and userCurrentPage > 0}"-->
+<!--                           th:onclick="'filterUsers(event, ' + ${userCurrentPage - 1} + ')'"-->
+<!--                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer">-->
+<!--                            <i class="fas fa-chevron-left mr-2"></i> Previous-->
+<!--                        </a>-->
+<!--                        <span th:if="${userCurrentPage == null or userCurrentPage == 0}"-->
+<!--                              class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">-->
+<!--                            <i class="fas fa-chevron-left mr-2"></i> Previous-->
+<!--                        </span>-->
+
+<!--                        &lt;!&ndash; Page Numbers &ndash;&gt;-->
+<!--                        <template th:if="${userTotalPages != null}" th:each="i : ${#numbers.sequence(0, userTotalPages - 1)}">-->
+<!--                            <a th:onclick="'filterUsers(event, ' + ${i} + ')'"-->
+<!--                               th:text="${i + 1}"-->
+<!--                               th:class="${userCurrentPage != null and i == userCurrentPage} ? 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium cursor-pointer' : 'px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer'"></a>-->
+<!--                        </template>-->
+
+<!--                        &lt;!&ndash; Next &ndash;&gt;-->
+<!--                        <a th:if="${userCurrentPage != null and userTotalPages != null and userCurrentPage < userTotalPages - 1}"-->
+<!--                           th:onclick="'filterUsers(event, ' + ${userCurrentPage + 1} + ')'"-->
+<!--                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer">-->
+<!--                            Next <i class="fas fa-chevron-right ml-2"></i>-->
+<!--                        </a>-->
+<!--                        <span th:if="${userCurrentPage == null or userTotalPages == null or userCurrentPage >= userTotalPages - 1}"-->
+<!--                              class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">-->
+<!--                            Next <i class="fas fa-chevron-right ml-2"></i>-->
+<!--                        </span>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; Appointments Management Section &ndash;&gt;-->
+<!--    <div class="bg-white rounded-xl shadow-lg overflow-hidden">-->
+<!--        <div class="p-6 border-b border-gray-200">-->
+<!--            <h3 class="text-lg font-semibold mb-4"><i class="fas fa-calendar-alt mr-2 text-indigo-600"></i>Appointments Management</h3>-->
+<!--            <form id="filterForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">-->
+<!--                &lt;!&ndash; Status Filter &ndash;&gt;-->
+<!--                <select name="statusFilter" id="statusFilter" onchange="filterAppointments()" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">-->
+<!--                    <option value="">All Status</option>-->
+<!--                    <option value="CONFIRMED" th:selected="${statusFilter == 'CONFIRMED'}">CONFIRMED</option>-->
+<!--                    <option value="CANCELLED" th:selected="${statusFilter == 'CANCELLED'}">CANCELLED</option>-->
+<!--                </select>-->
+
+<!--                &lt;!&ndash; Start Date &ndash;&gt;-->
+<!--                <input type="date" name="startDate" id="startDate" th:value="${startDate}"-->
+<!--                       placeholder="Start Date"-->
+<!--                       onchange="checkDateRange()"-->
+<!--                       class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">-->
+
+<!--                &lt;!&ndash; End Date &ndash;&gt;-->
+<!--                <input type="date" name="endDate" id="endDate" th:value="${endDate}"-->
+<!--                       placeholder="End Date"-->
+<!--                       onchange="checkDateRange()"-->
+<!--                       class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">-->
+
+<!--                &lt;!&ndash; Search &ndash;&gt;-->
+<!--                <input type="text" name="appointmentSearch" id="appointmentSearch" th:value="${appointmentSearchQuery}"-->
+<!--                       placeholder="Search patient/doctor..."-->
+<!--                       class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-green-500 focus:border-green-500">-->
+
+<!--                &lt;!&ndash; Filter Button &ndash;&gt;-->
+<!--                <button type="button" onclick="filterAppointments()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center">-->
+<!--                    <i class="fas fa-search mr-2"></i>Filter-->
+<!--                </button>-->
+<!--            </form>-->
+<!--        </div>-->
+
+<!--        &lt;!&ndash; Loading Indicator &ndash;&gt;-->
+<!--        <div id="loadingIndicator" class="hidden p-6 text-center">-->
+<!--            <i class="fas fa-spinner fa-spin text-indigo-600 text-2xl"></i>-->
+<!--            <p class="mt-2 text-gray-600">Loading appointments...</p>-->
+<!--        </div>-->
+
+<!--        <div id="appointmentsContent">-->
+<!--            <div class="overflow-x-auto">-->
+<!--                <table class="min-w-full divide-y divide-gray-200" id="appointmentsTable">-->
+<!--                    <thead class="bg-gray-50">-->
+<!--                    <tr>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                            Patient Name-->
+<!--                        </th>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                            Status-->
+<!--                        </th>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                            Doctor Name-->
+<!--                        </th>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                            Date-->
+<!--                        </th>-->
+<!--                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">-->
+<!--                            Actions-->
+<!--                        </th>-->
+<!--                    </tr>-->
+<!--                    </thead>-->
+
+<!--                    <tbody class="bg-white divide-y divide-gray-200">-->
+<!--                    <tr th:each="appt : ${appointments}">-->
+<!--                        &lt;!&ndash; UPDATED: Patient name from DTO's patientProfile &ndash;&gt;-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"-->
+<!--                            th:text="${appt.patientProfile != null ? appt.patientProfile.patientName : 'N/A'}">John Doe-->
+<!--                        </td>-->
+
+<!--                        &lt;!&ndash; Status: From appointment wrap &ndash;&gt;-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap">-->
+<!--        <span th:switch="${appt.appointment.status.name()}"-->
+<!--              class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">-->
+<!--            <span th:case="'CONFIRMED'" class="bg-green-100 text-green-800" th:text="${appt.appointment.status.name()}">CONFIRMED</span>-->
+<!--            <span th:case="'CANCELLED'" class="bg-red-100 text-red-800" th:text="${appt.appointment.status.name()}">CANCELLED</span>-->
+<!--            <span th:case="*" class="bg-gray-100 text-gray-800"-->
+<!--                  th:text="${appt.appointment.status.name()}">UNKNOWN</span>-->
+<!--        </span>-->
+<!--                        </td>-->
+
+<!--                        &lt;!&ndash; Doctor: From appointment wrap &ndash;&gt;-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"-->
+<!--                            th:text="${appt.appointment.doctor != null ? appt.appointment.doctor.doctorName : 'N/A'}">-->
+<!--                            Dr. Smith-->
+<!--                        </td>-->
+
+<!--                        &lt;!&ndash; Date: From appointment wrap &ndash;&gt;-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"-->
+<!--                            th:text="${appt.appointment.appointmentDate != null ? #temporals.format(appt.appointment.appointmentDate, 'dd MMM yyyy') : 'N/A'}">-->
+<!--                            01 Jan 2024-->
+<!--                        </td>-->
+
+<!--                        &lt;!&ndash; Actions: Prescription from DTO &ndash;&gt;-->
+<!--                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">-->
+<!--                            &lt;!&ndash; View if prescription exists & not cancelled &ndash;&gt;-->
+<!--                            <span th:if="${appt.prescription != null and appt.appointment.status.name() != 'CANCELLED'}">-->
+<!--            <a th:href="@{/admin/appointments/{id}/view(id=${appt.appointment.id})}"-->
+<!--               class="text-indigo-600 hover:text-indigo-900 flex items-center gap-1">-->
+<!--                <i class="fas fa-file-prescription"></i> View Prescription-->
+<!--            </a>-->
+<!--        </span>-->
+<!--                            &lt;!&ndash; No prescription yet &ndash;&gt;-->
+<!--                            <span th:if="${appt.prescription == null and appt.appointment.status.name() == 'CONFIRMED'}"-->
+<!--                                  class="text-gray-500 italic text-xs">-->
+<!--            Prescription not provided yet-->
+<!--        </span>-->
+<!--                            &lt;!&ndash; Cancelled &ndash;&gt;-->
+<!--                            <span th:if="${appt.appointment.status.name() == 'CANCELLED'}"-->
+<!--                                  class="text-red-500 italic text-xs">-->
+<!--            Cancelled - No prescription-->
+<!--        </span>-->
+<!--                        </td>-->
+<!--                    </tr>-->
+<!--                    </tbody>-->
+<!--                </table>-->
+<!--            </div>-->
+<!--            &lt;!&ndash; Pagination for Appointments &ndash;&gt;-->
+<!--            <div th:if="${appointmentTotalElements != null and appointmentTotalElements > 0}" class="px-6 py-4 bg-gray-50 border-t border-gray-200">-->
+<!--                <div class="flex flex-col sm:flex-row items-center justify-between gap-4">-->
+<!--                    <div class="text-sm text-gray-700">-->
+<!--                        Showing-->
+<!--                        <span class="font-semibold" th:text="${appointmentCurrentPage != null ? (appointmentCurrentPage * 10 + 1) : 1}">1</span>-->
+<!--                        to-->
+<!--                        <span class="font-semibold" th:text="${appointmentCurrentPage != null and appointmentTotalElements != null ? (((appointmentCurrentPage + 1) * 10 > appointmentTotalElements) ? appointmentTotalElements : (appointmentCurrentPage + 1) * 10) : 10}">10</span>-->
+<!--                        of-->
+<!--                        <span class="font-semibold" th:text="${appointmentTotalElements}">0</span> results-->
+<!--                    </div>-->
+<!--                    <div class="flex items-center gap-2" id="paginationControls">-->
+<!--                        &lt;!&ndash; Previous &ndash;&gt;-->
+<!--                        <a th:if="${appointmentCurrentPage != null and appointmentCurrentPage > 0}"-->
+<!--                           th:onclick="'filterAppointments(event, ' + ${appointmentCurrentPage - 1} + ')'"-->
+<!--                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer">-->
+<!--                            <i class="fas fa-chevron-left mr-2"></i> Previous-->
+<!--                        </a>-->
+<!--                        <span th:if="${appointmentCurrentPage == null or appointmentCurrentPage == 0}"-->
+<!--                              class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">-->
+<!--                        <i class="fas fa-chevron-left mr-2"></i> Previous-->
+<!--                    </span>-->
+
+<!--                        &lt;!&ndash; Page Numbers &ndash;&gt;-->
+<!--                        <template th:if="${appointmentTotalPages != null}" th:each="i : ${#numbers.sequence(0, appointmentTotalPages - 1)}">-->
+<!--                            <a th:onclick="'filterAppointments(event, ' + ${i} + ')'"-->
+<!--                               th:text="${i + 1}"-->
+<!--                               th:class="${appointmentCurrentPage != null and i == appointmentCurrentPage} ? 'px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium cursor-pointer' : 'px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer'"></a>-->
+<!--                        </template>-->
+
+<!--                        &lt;!&ndash; Next &ndash;&gt;-->
+<!--                        <a th:if="${appointmentCurrentPage != null and appointmentTotalPages != null and appointmentCurrentPage < appointmentTotalPages - 1}"-->
+<!--                           th:onclick="'filterAppointments(event, ' + ${appointmentCurrentPage + 1} + ')'"-->
+<!--                           class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 cursor-pointer">-->
+<!--                            Next <i class="fas fa-chevron-right ml-2"></i>-->
+<!--                        </a>-->
+<!--                        <span th:if="${appointmentCurrentPage == null or appointmentTotalPages == null or appointmentCurrentPage >= appointmentTotalPages - 1}"-->
+<!--                              class="px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">-->
+<!--                        Next <i class="fas fa-chevron-right ml-2"></i>-->
+<!--                    </span>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--</div>-->
+
+<!--&lt;!&ndash; DataTables Initialization &ndash;&gt;-->
+<!--<script>-->
+<!--    $(document).ready(function() {-->
+<!--        $('#usersTable, #appointmentsTable').DataTable({-->
+<!--            paging: false,-->
+<!--            searching: false,-->
+<!--            info: false,-->
+<!--            ordering: false-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
+
+<!--&lt;!&ndash; AJAX Filtering Script for Users &ndash;&gt;-->
+<!--<script>-->
+<!--    let userCurrentPage = 0;-->
+
+<!--    function filterUsers(event, page = 0) {-->
+<!--        if (event) {-->
+<!--            event.preventDefault();-->
+<!--        }-->
+
+<!--        userCurrentPage = page;-->
+
+<!--        // Get filter values-->
+<!--        const roleFilter = document.getElementById('roleFilter').value;-->
+<!--        const searchQuery = document.getElementById('userSearch').value;-->
+
+<!--        // Build query parameters-->
+<!--        const params = new URLSearchParams();-->
+<!--        if (roleFilter) params.append('role', roleFilter);-->
+<!--        if (searchQuery) params.append('userSearch', searchQuery);-->
+<!--        params.append('userPage', page);-->
+<!--        params.append('userSize', '10');-->
+
+<!--        // Show loading indicator-->
+<!--        document.getElementById('userLoadingIndicator').classList.remove('hidden');-->
+<!--        document.getElementById('usersContent').style.opacity = '0.5';-->
+
+<!--        // Make AJAX request-->
+<!--        fetch('/admin/dashboard?' + params.toString(), {-->
+<!--            method: 'GET',-->
+<!--            headers: {-->
+<!--                'X-Requested-With': 'XMLHttpRequest'-->
+<!--            }-->
+<!--        })-->
+<!--        .then(response => response.text())-->
+<!--        .then(html => {-->
+<!--            // Parse the response and extract the users table content-->
+<!--            const parser = new DOMParser();-->
+<!--            const doc = parser.parseFromString(html, 'text/html');-->
+<!--            const newContent = doc.querySelector('#usersContent');-->
+
+<!--            if (newContent) {-->
+<!--                document.getElementById('usersContent').innerHTML = newContent.innerHTML;-->
+<!--                // Re-initialize DataTable after content update-->
+<!--                if ($.fn.DataTable.isDataTable('#usersTable')) {-->
+<!--                    $('#usersTable').DataTable().destroy();-->
+<!--                }-->
+<!--                $('#usersTable').DataTable({-->
+<!--                    paging: false,-->
+<!--                    searching: false,-->
+<!--                    info: false,-->
+<!--                    ordering: false-->
+<!--                });-->
+<!--            }-->
+
+<!--            // Hide loading indicator-->
+<!--            document.getElementById('userLoadingIndicator').classList.add('hidden');-->
+<!--            document.getElementById('usersContent').style.opacity = '1';-->
+<!--        })-->
+<!--        .catch(error => {-->
+<!--            console.error('Error filtering users:', error);-->
+<!--            document.getElementById('userLoadingIndicator').classList.add('hidden');-->
+<!--            document.getElementById('usersContent').style.opacity = '1';-->
+<!--            alert('Error loading users. Please try again.');-->
+<!--        });-->
+<!--    }-->
+<!--</script>-->
+
+<!--&lt;!&ndash; AJAX Filtering Script for Appointments &ndash;&gt;-->
+<!--<script>-->
+<!--    let currentPage = 0;-->
+
+<!--    function checkDateRange() {-->
+<!--        const startDate = document.getElementById('startDate').value;-->
+<!--        const endDate = document.getElementById('endDate').value;-->
+
+<!--        // Only submit if both dates are filled-->
+<!--        if (startDate && endDate) {-->
+<!--            filterAppointments();-->
+<!--        }-->
+<!--    }-->
+
+<!--    function filterAppointments(event, page = 0) {-->
+<!--        if (event) {-->
+<!--            event.preventDefault();-->
+<!--        }-->
+
+<!--        currentPage = page;-->
+
+<!--        // Get filter values-->
+<!--        const statusFilter = document.getElementById('statusFilter').value;-->
+<!--        const startDate = document.getElementById('startDate').value;-->
+<!--        const endDate = document.getElementById('endDate').value;-->
+<!--        const searchQuery = document.getElementById('appointmentSearch').value;-->
+
+<!--        // Build query parameters-->
+<!--        const params = new URLSearchParams();-->
+<!--        if (statusFilter) params.append('statusFilter', statusFilter);-->
+<!--        if (startDate) params.append('startDate', startDate);-->
+<!--        if (endDate) params.append('endDate', endDate);-->
+<!--        if (searchQuery) params.append('appointmentSearch', searchQuery);-->
+<!--        params.append('appointmentPage', page);-->
+<!--        params.append('appointmentSize', '10');-->
+
+<!--        // Show loading indicator-->
+<!--        document.getElementById('loadingIndicator').classList.remove('hidden');-->
+<!--        document.getElementById('appointmentsContent').style.opacity = '0.5';-->
+
+<!--        // Make AJAX request-->
+<!--        fetch('/admin/dashboard?' + params.toString(), {-->
+<!--            method: 'GET',-->
+<!--            headers: {-->
+<!--                'X-Requested-With': 'XMLHttpRequest'-->
+<!--            }-->
+<!--        })-->
+<!--        .then(response => response.text())-->
+<!--        .then(html => {-->
+<!--            // Parse the response and extract the appointments table content-->
+<!--            const parser = new DOMParser();-->
+<!--            const doc = parser.parseFromString(html, 'text/html');-->
+<!--            const newContent = doc.querySelector('#appointmentsContent');-->
+
+<!--            if (newContent) {-->
+<!--                document.getElementById('appointmentsContent').innerHTML = newContent.innerHTML;-->
+<!--                // Re-initialize DataTable after content update-->
+<!--                if ($.fn.DataTable.isDataTable('#appointmentsTable')) {-->
+<!--                    $('#appointmentsTable').DataTable().destroy();-->
+<!--                }-->
+<!--                $('#appointmentsTable').DataTable({-->
+<!--                    paging: false,-->
+<!--                    searching: false,-->
+<!--                    info: false,-->
+<!--                    ordering: false-->
+<!--                });-->
+<!--            }-->
+
+<!--            // Hide loading indicator-->
+<!--            document.getElementById('loadingIndicator').classList.add('hidden');-->
+<!--            document.getElementById('appointmentsContent').style.opacity = '1';-->
+<!--        })-->
+<!--        .catch(error => {-->
+<!--            console.error('Error filtering appointments:', error);-->
+<!--            document.getElementById('loadingIndicator').classList.add('hidden');-->
+<!--            document.getElementById('appointmentsContent').style.opacity = '1';-->
+<!--            alert('Error loading appointments. Please try again.');-->
+<!--        });-->
+<!--    }-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->

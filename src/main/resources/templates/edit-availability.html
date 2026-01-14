@@ -1,0 +1,317 @@
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Edit Availability Schedule</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">-->
+<!--    <style>-->
+<!--        .time-slot-card {-->
+<!--            transition: all 0.3s;-->
+<!--        }-->
+<!--        .time-slot-card:hover {-->
+<!--            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">-->
+
+<!--&lt;!&ndash; Navbar &ndash;&gt;-->
+<!--<nav class="bg-white shadow-md sticky top-0 z-10">-->
+<!--    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">-->
+<!--        <a href="/doctors" class="text-xl font-bold text-indigo-600">-->
+<!--            <i class="fas fa-stethoscope"></i> MediCare-->
+<!--        </a>-->
+<!--        <div class="flex items-center gap-4">-->
+<!--            <a th:href="@{/doctors/{id}/profile(id=${doctor.id})}" class="text-indigo-600 hover:underline text-sm">-->
+<!--                <i class="fas fa-arrow-left"></i> Back to Profile-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</nav>-->
+
+<!--<div class="max-w-5xl mx-auto p-6 mt-8">-->
+<!--    <div class="bg-white rounded-xl shadow-xl p-8">-->
+<!--        <div class="mb-6">-->
+<!--            <h2 class="text-3xl font-bold text-gray-800 flex items-center">-->
+<!--                <i class="fas fa-calendar-edit text-indigo-600 mr-3"></i>-->
+<!--                Edit Availability Schedule-->
+<!--            </h2>-->
+<!--            <p class="text-gray-600 mt-2">Set your available days and time slots for patient appointments</p>-->
+<!--        </div>-->
+
+<!--        <form th:action="@{/doctors/{id}/availability/save(id=${doctor.id})}" method="post" id="availabilityForm">-->
+<!--            <div class="space-y-4">-->
+<!--                &lt;!&ndash; Sunday &ndash;&gt;-->
+<!--                <div class="time-slot-card border border-gray-200 rounded-xl p-5 bg-gradient-to-r from-white to-gray-50">-->
+<!--                    <div class="flex items-center gap-4 mb-4">-->
+<!--                        <input type="checkbox"-->
+<!--                               id="enable_SUNDAY"-->
+<!--                               name="enable_SUNDAY"-->
+<!--                               class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"-->
+<!--                               onchange="toggleDay('SUNDAY')">-->
+<!--                        <label for="enable_SUNDAY" class="font-bold text-gray-800 text-lg w-32">-->
+<!--                            <i class="fas fa-calendar-day text-red-500 mr-2"></i>Sunday-->
+<!--                        </label>-->
+<!--                        <button type="button" onclick="addTimeSlot('SUNDAY')"-->
+<!--                                id="addBtn_SUNDAY"-->
+<!--                                class="ml-auto px-3 py-1.5 bg-indigo-100 text-indigo-600 rounded-lg text-sm hover:bg-indigo-200 transition"-->
+<!--                                disabled>-->
+<!--                            <i class="fas fa-plus mr-1"></i> Add Slot-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                    <div id="slots_SUNDAY" class="space-y-3 ml-9"></div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Monday &ndash;&gt;-->
+<!--                <div class="time-slot-card border border-gray-200 rounded-xl p-5 bg-gradient-to-r from-white to-gray-50">-->
+<!--                    <div class="flex items-center gap-4 mb-4">-->
+<!--                        <input type="checkbox"-->
+<!--                               id="enable_MONDAY"-->
+<!--                               name="enable_MONDAY"-->
+<!--                               class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"-->
+<!--                               onchange="toggleDay('MONDAY')">-->
+<!--                        <label for="enable_MONDAY" class="font-bold text-gray-800 text-lg w-32">-->
+<!--                            <i class="fas fa-calendar-day text-blue-500 mr-2"></i>Monday-->
+<!--                        </label>-->
+<!--                        <button type="button" onclick="addTimeSlot('MONDAY')"-->
+<!--                                id="addBtn_MONDAY"-->
+<!--                                class="ml-auto px-3 py-1.5 bg-indigo-100 text-indigo-600 rounded-lg text-sm hover:bg-indigo-200 transition"-->
+<!--                                disabled>-->
+<!--                            <i class="fas fa-plus mr-1"></i> Add Slot-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                    <div id="slots_MONDAY" class="space-y-3 ml-9"></div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Tuesday &ndash;&gt;-->
+<!--                <div class="time-slot-card border border-gray-200 rounded-xl p-5 bg-gradient-to-r from-white to-gray-50">-->
+<!--                    <div class="flex items-center gap-4 mb-4">-->
+<!--                        <input type="checkbox"-->
+<!--                               id="enable_TUESDAY"-->
+<!--                               name="enable_TUESDAY"-->
+<!--                               class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"-->
+<!--                               onchange="toggleDay('TUESDAY')">-->
+<!--                        <label for="enable_TUESDAY" class="font-bold text-gray-800 text-lg w-32">-->
+<!--                            <i class="fas fa-calendar-day text-green-500 mr-2"></i>Tuesday-->
+<!--                        </label>-->
+<!--                        <button type="button" onclick="addTimeSlot('TUESDAY')"-->
+<!--                                id="addBtn_TUESDAY"-->
+<!--                                class="ml-auto px-3 py-1.5 bg-indigo-100 text-indigo-600 rounded-lg text-sm hover:bg-indigo-200 transition"-->
+<!--                                disabled>-->
+<!--                            <i class="fas fa-plus mr-1"></i> Add Slot-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                    <div id="slots_TUESDAY" class="space-y-3 ml-9"></div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Wednesday &ndash;&gt;-->
+<!--                <div class="time-slot-card border border-gray-200 rounded-xl p-5 bg-gradient-to-r from-white to-gray-50">-->
+<!--                    <div class="flex items-center gap-4 mb-4">-->
+<!--                        <input type="checkbox"-->
+<!--                               id="enable_WEDNESDAY"-->
+<!--                               name="enable_WEDNESDAY"-->
+<!--                               class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"-->
+<!--                               onchange="toggleDay('WEDNESDAY')">-->
+<!--                        <label for="enable_WEDNESDAY" class="font-bold text-gray-800 text-lg w-32">-->
+<!--                            <i class="fas fa-calendar-day text-yellow-500 mr-2"></i>Wednesday-->
+<!--                        </label>-->
+<!--                        <button type="button" onclick="addTimeSlot('WEDNESDAY')"-->
+<!--                                id="addBtn_WEDNESDAY"-->
+<!--                                class="ml-auto px-3 py-1.5 bg-indigo-100 text-indigo-600 rounded-lg text-sm hover:bg-indigo-200 transition"-->
+<!--                                disabled>-->
+<!--                            <i class="fas fa-plus mr-1"></i> Add Slot-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                    <div id="slots_WEDNESDAY" class="space-y-3 ml-9"></div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Thursday &ndash;&gt;-->
+<!--                <div class="time-slot-card border border-gray-200 rounded-xl p-5 bg-gradient-to-r from-white to-gray-50">-->
+<!--                    <div class="flex items-center gap-4 mb-4">-->
+<!--                        <input type="checkbox"-->
+<!--                               id="enable_THURSDAY"-->
+<!--                               name="enable_THURSDAY"-->
+<!--                               class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"-->
+<!--                               onchange="toggleDay('THURSDAY')">-->
+<!--                        <label for="enable_THURSDAY" class="font-bold text-gray-800 text-lg w-32">-->
+<!--                            <i class="fas fa-calendar-day text-purple-500 mr-2"></i>Thursday-->
+<!--                        </label>-->
+<!--                        <button type="button" onclick="addTimeSlot('THURSDAY')"-->
+<!--                                id="addBtn_THURSDAY"-->
+<!--                                class="ml-auto px-3 py-1.5 bg-indigo-100 text-indigo-600 rounded-lg text-sm hover:bg-indigo-200 transition"-->
+<!--                                disabled>-->
+<!--                            <i class="fas fa-plus mr-1"></i> Add Slot-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                    <div id="slots_THURSDAY" class="space-y-3 ml-9"></div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Friday &ndash;&gt;-->
+<!--                <div class="time-slot-card border border-gray-200 rounded-xl p-5 bg-gradient-to-r from-white to-gray-50">-->
+<!--                    <div class="flex items-center gap-4 mb-4">-->
+<!--                        <input type="checkbox"-->
+<!--                               id="enable_FRIDAY"-->
+<!--                               name="enable_FRIDAY"-->
+<!--                               class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"-->
+<!--                               onchange="toggleDay('FRIDAY')">-->
+<!--                        <label for="enable_FRIDAY" class="font-bold text-gray-800 text-lg w-32">-->
+<!--                            <i class="fas fa-calendar-day text-pink-500 mr-2"></i>Friday-->
+<!--                        </label>-->
+<!--                        <button type="button" onclick="addTimeSlot('FRIDAY')"-->
+<!--                                id="addBtn_FRIDAY"-->
+<!--                                class="ml-auto px-3 py-1.5 bg-indigo-100 text-indigo-600 rounded-lg text-sm hover:bg-indigo-200 transition"-->
+<!--                                disabled>-->
+<!--                            <i class="fas fa-plus mr-1"></i> Add Slot-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                    <div id="slots_FRIDAY" class="space-y-3 ml-9"></div>-->
+<!--                </div>-->
+
+<!--                &lt;!&ndash; Saturday &ndash;&gt;-->
+<!--                <div class="time-slot-card border border-gray-200 rounded-xl p-5 bg-gradient-to-r from-white to-gray-50">-->
+<!--                    <div class="flex items-center gap-4 mb-4">-->
+<!--                        <input type="checkbox"-->
+<!--                               id="enable_SATURDAY"-->
+<!--                               name="enable_SATURDAY"-->
+<!--                               class="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500"-->
+<!--                               onchange="toggleDay('SATURDAY')">-->
+<!--                        <label for="enable_SATURDAY" class="font-bold text-gray-800 text-lg w-32">-->
+<!--                            <i class="fas fa-calendar-day text-orange-500 mr-2"></i>Saturday-->
+<!--                        </label>-->
+<!--                        <button type="button" onclick="addTimeSlot('SATURDAY')"-->
+<!--                                id="addBtn_SATURDAY"-->
+<!--                                class="ml-auto px-3 py-1.5 bg-indigo-100 text-indigo-600 rounded-lg text-sm hover:bg-indigo-200 transition"-->
+<!--                                disabled>-->
+<!--                            <i class="fas fa-plus mr-1"></i> Add Slot-->
+<!--                        </button>-->
+<!--                    </div>-->
+<!--                    <div id="slots_SATURDAY" class="space-y-3 ml-9"></div>-->
+<!--                </div>-->
+<!--            </div>-->
+
+<!--            <div class="flex gap-4 mt-8 pt-6 border-t">-->
+<!--                <button type="submit"-->
+<!--                        class="flex-1 bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium text-lg">-->
+<!--                    <i class="fas fa-save mr-2"></i> Save Schedule-->
+<!--                </button>-->
+<!--                <a th:href="@{/doctors/{id}/profile(id=${doctor.id})}"-->
+<!--                   class="flex-1 border-2 border-gray-300 text-gray-700 text-center py-3 rounded-lg hover:bg-gray-50 transition font-medium text-lg">-->
+<!--                    <i class="fas fa-times mr-2"></i> Cancel-->
+<!--                </a>-->
+<!--            </div>-->
+<!--        </form>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script th:inline="javascript">-->
+<!--    const slotCounters = {-->
+<!--        SUNDAY: 0, MONDAY: 0, TUESDAY: 0, WEDNESDAY: 0,-->
+<!--        THURSDAY: 0, FRIDAY: 0, SATURDAY: 0-->
+<!--    };-->
+
+<!--    // Load existing availability from Thymeleaf-->
+<!--    const existingAvailability = /*[[${availabilityByDay}]]*/ {};-->
+
+<!--    function toggleDay(day) {-->
+<!--        const checkbox = document.getElementById('enable_' + day);-->
+<!--        const addBtn = document.getElementById('addBtn_' + day);-->
+<!--        const slotsContainer = document.getElementById('slots_' + day);-->
+
+<!--        addBtn.disabled = !checkbox.checked;-->
+
+<!--        if (!checkbox.checked) {-->
+<!--            slotsContainer.innerHTML = '';-->
+<!--            slotCounters[day] = 0;-->
+<!--        } else if (slotCounters[day] === 0) {-->
+<!--            addTimeSlot(day);-->
+<!--        }-->
+<!--    }-->
+
+<!--    function addTimeSlot(day) {-->
+<!--        const slotsContainer = document.getElementById('slots_' + day);-->
+<!--        const slotId = slotCounters[day]++;-->
+
+<!--        const slotDiv = document.createElement('div');-->
+<!--        slotDiv.className = 'flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200';-->
+<!--        slotDiv.id = `slot_${day}_${slotId}`;-->
+<!--        slotDiv.innerHTML = `-->
+<!--            <label class="text-sm font-medium text-gray-600 w-12">From:</label>-->
+<!--            <input type="time"-->
+<!--                   name="startTime_${day}_${slotId}"-->
+<!--                   required-->
+<!--                   class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">-->
+<!--            <label class="text-sm font-medium text-gray-600">To:</label>-->
+<!--            <input type="time"-->
+<!--                   name="endTime_${day}_${slotId}"-->
+<!--                   required-->
+<!--                   class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">-->
+<!--            <button type="button"-->
+<!--                    onclick="removeTimeSlot('${day}', ${slotId})"-->
+<!--                    class="ml-auto p-2 text-red-600 hover:bg-red-50 rounded-lg transition">-->
+<!--                <i class="fas fa-trash"></i>-->
+<!--            </button>-->
+<!--        `;-->
+
+<!--        slotsContainer.appendChild(slotDiv);-->
+<!--    }-->
+
+<!--    function removeTimeSlot(day, slotId) {-->
+<!--        const slotDiv = document.getElementById(`slot_${day}_${slotId}`);-->
+<!--        if (slotDiv) {-->
+<!--            slotDiv.remove();-->
+<!--        }-->
+<!--    }-->
+
+<!--    // Load existing availability data-->
+<!--    window.addEventListener('DOMContentLoaded', function() {-->
+<!--        Object.keys(existingAvailability).forEach(day => {-->
+<!--            const slots = existingAvailability[day];-->
+<!--            if (slots && slots.length > 0) {-->
+<!--                const checkbox = document.getElementById('enable_' + day);-->
+<!--                checkbox.checked = true;-->
+<!--                toggleDay(day);-->
+
+<!--                // Remove the auto-added first slot-->
+<!--                const firstSlot = document.getElementById(`slot_${day}_0`);-->
+<!--                if (firstSlot) firstSlot.remove();-->
+<!--                slotCounters[day] = 0;-->
+
+<!--                // Add existing slots-->
+<!--                slots.forEach(slot => {-->
+<!--                    const slotsContainer = document.getElementById('slots_' + day);-->
+<!--                    const slotId = slotCounters[day]++;-->
+
+<!--                    const slotDiv = document.createElement('div');-->
+<!--                    slotDiv.className = 'flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-200';-->
+<!--                    slotDiv.id = `slot_${day}_${slotId}`;-->
+<!--                    slotDiv.innerHTML = `-->
+<!--                        <label class="text-sm font-medium text-gray-600 w-12">From:</label>-->
+<!--                        <input type="time"-->
+<!--                               name="startTime_${day}_${slotId}"-->
+<!--                               value="${slot.startTime}"-->
+<!--                               required-->
+<!--                               class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">-->
+<!--                        <label class="text-sm font-medium text-gray-600">To:</label>-->
+<!--                        <input type="time"-->
+<!--                               name="endTime_${day}_${slotId}"-->
+<!--                               value="${slot.endTime}"-->
+<!--                               required-->
+<!--                               class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">-->
+<!--                        <button type="button"-->
+<!--                                onclick="removeTimeSlot('${day}', ${slotId})"-->
+<!--                                class="ml-auto p-2 text-red-600 hover:bg-red-50 rounded-lg transition">-->
+<!--                            <i class="fas fa-trash"></i>-->
+<!--                        </button>-->
+<!--                    `;-->
+
+<!--                    slotsContainer.appendChild(slotDiv);-->
+<!--                });-->
+<!--            }-->
+<!--        });-->
+<!--    });-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${patient.patientName} + ' - Profile'">Patient Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+
+<!-- Navbar -->
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <!-- Logo -->
+        <a href="/" class="text-xl font-bold text-indigo-600 flex items-center gap-2">
+            <i class="fas fa-heartbeat"></i> MediCare
+        </a>
+
+        <!-- Navigation Links (No box/button style, just text + icon) -->
+        <div class="flex items-center gap-8 flex-wrap">
+            <!-- Find Doctors -->
+            <a href="/doctors" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-search"></i> Find Doctors
+            </a>
+
+            <!-- Available Doctor -->
+            <a href="/available" class="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition">
+                <i class="fas fa-calendar-plus"></i> Available Doctor
+            </a>
+
+            <!-- My Appointments -->
+            <a href="/patients/appointments" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-list"></i> My Appointments
+            </a>
+
+            <!-- Logout -->
+            <a th:href="@{/auth/logout}"
+               class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="max-w-5xl mx-auto p-6 mt-8">
+
+    <!-- Profile Card -->
+    <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-48 relative">
+            <div class="absolute -bottom-16 left-8 w-32 h-32 bg-white rounded-full shadow-lg flex items-center justify-center border-4 border-white">
+                <i class="fas fa-user-injured text-6xl text-indigo-600"></i>
+            </div>
+        </div>
+
+        <div class="pt-20 pb-8 px-8">
+            <h1 class="text-3xl font-bold text-gray-800" th:text="${patient.patientName}">Mr. Ahmed Khan</h1>
+            <p class="text-xl text-indigo-600 font-medium mt-1">Patient</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 text-gray-700">
+                <div class="space-y-4">
+                    <p><i class="fas fa-id-card text-indigo-500 mr-3"></i> <strong>Patient ID:</strong> <span th:text="${patient.id}">001</span></p>
+                    <p><i class="fas fa-envelope text-indigo-500 mr-3"></i> <strong>Email:</strong> <span th:text="${patient.patientEmail}">patient@example.com</span></p>
+                    <p><i class="fas fa-venus-mars text-indigo-500 mr-3"></i> <strong>Gender:</strong> <span th:text="${patient.gender}">Male</span></p>
+                    <p><i class="fas fa-phone text-indigo-500 mr-3"></i> <strong>Contact:</strong> <span th:text="${patient.contact}">+880 17xxx xxxxx</span></p>
+                </div>
+            </div>
+
+<!--            <div class="mt-10 flex gap-4 flex-wrap">-->
+<!--                <a href="/doctors" class="flex-1 bg-indigo-600 text-white text-center py-3 rounded-lg hover:bg-indigo-700 transition font-medium min-w-fit">-->
+<!--                    <i class="fas fa-stethoscope mr-2"></i> Find Doctors-->
+<!--                </a>-->
+<!--                <a href="/available" class="flex-1 bg-green-600 text-white text-center py-3 rounded-lg hover:bg-green-700 transition font-medium min-w-fit">-->
+<!--                    <i class="fas fa-calendar-plus mr-2"></i> Available Doctor-->
+<!--                </a>-->
+<!--                <a href="/patients/appointments" class="flex-1 border border-indigo-600 text-indigo-600 text-center py-3 rounded-lg hover:bg-indigo-50 transition font-medium min-w-fit">-->
+<!--                    <i class="fas fa-list mr-2"></i> My Appointments-->
+<!--                </a>-->
+<!--            </div>-->
+        </div>
+    </div>
+
+    <!-- Upcoming Available Doctors with Horizontal Layout & Filter -->
+    <div class="mt-12">
+        <!-- Header + Filter in one line -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-calendar-check text-indigo-600"></i>
+                Upcoming Available Doctors
+            </h2>
+
+            <!-- Smaller Filter Dropdown -->
+            <div class="md:max-w-xs w-full">
+                <form th:action="@{/patients/profile}" method="get" class="relative">
+                    <input type="hidden" name="page" th:value="${currentPage}" />
+                    <select name="speciality"
+                            onchange="this.form.submit()"
+                            class="w-full px-5 py-3 text-base font-medium text-gray-700 bg-white border-2 border-indigo-300 rounded-lg shadow-md focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 cursor-pointer appearance-none">
+                        <option value="">All Specialities</option>
+                        <option th:each="spec : ${allSpecialities}"
+                                th:value="${spec}"
+                                th:text="${spec}"
+                                th:selected="${spec == selectedSpeciality}"></option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                        <i class="fas fa-chevron-down text-indigo-600"></i>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Horizontal Line Separator -->
+        <hr class="border-t-2 border-indigo-200 mb-5">
+
+        <!-- Currently Viewing Badge -->
+        <div class="flex justify-between items-center mb-3">
+            <div th:if="${selectedSpeciality != null}">
+                <span class="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 text-indigo-800 font-medium">
+                    Showing: <strong th:text="${selectedSpeciality}" class="ml-1">Pediatrician</strong>
+                </span>
+            </div>
+            <div class="text-sm text-gray-600" th:if="${totalDoctors > 0}">
+                Showing <strong th:text="${(currentPage - 1) * pageSize + 1}">1</strong> to
+                <strong th:text="${#numbers.formatInteger(T(java.lang.Math).min(currentPage * pageSize, totalDoctors), 0)}">10</strong>
+                of <strong th:text="${totalDoctors}">50</strong> doctors
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full table-auto">
+                    <thead class="bg-indigo-600 text-white">
+                    <tr>
+                        <th class="px-6 py-4 text-left">Available Date</th>
+                        <th class="px-6 py-4 text-left">Doctor Name</th>
+                        <th class="px-6 py-4 text-left">Speciality</th>
+                        <th class="px-6 py-4 text-center">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                    <tr th:each="avail : ${availableDoctors}" class="hover:bg-indigo-50 transition">
+                        <td class="px-6 py-4">
+                            <span th:text="${#temporals.format(avail.nextAvailableDate, 'dd MMM yyyy')}">14 Dec 2025</span>
+                            <span class="text-xs text-green-600 font-bold block"
+                                  th:if="${#temporals.day(avail.nextAvailableDate) == #temporals.day(#temporals.createNow())}">
+                                    (Today)
+                                </span>
+                        </td>
+                        <td class="px-6 py-4 font-medium" th:text="${avail.doctor.doctorName}">Dr. Sarah Ahmed</td>
+                        <td class="px-6 py-4 text-gray-600" th:text="${avail.doctor.speciality}">Pediatrician</td>
+                        <td class="px-6 py-4 text-center">
+                            <a th:href="@{'/doctors/' + ${avail.doctor.id} + '/profile'}"
+                               class="inline-flex items-center px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium shadow-md">
+                                <i class="fas fa-calendar-plus mr-2"></i> Book Now
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Empty State -->
+                    <tr th:if="${#lists.isEmpty(availableDoctors)}">
+                        <td colspan="4" class="px-6 py-12 text-center text-gray-500">
+                            <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-lg font-medium">
+                                No doctors available
+                                <span th:if="${selectedSpeciality != null}">
+                                        for "<strong th:text="${selectedSpeciality}"></strong>"
+                                    </span>
+                                <span th:if="${selectedSpeciality == null}">in the next 30 days</span>.
+                            </p>
+                            <p class="text-sm mt-2">Try another speciality or check back later.</p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div th:if="${totalPages > 1}" class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <!-- Previous Button -->
+                    <div>
+                        <a th:if="${currentPage > 1}"
+                           th:href="@{/patients/profile(page=${currentPage - 1}, speciality=${selectedSpeciality})}"
+                           class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition shadow-sm">
+                            <i class="fas fa-chevron-left mr-2"></i> Previous
+                        </a>
+                        <span th:if="${currentPage == 1}"
+                              class="inline-flex items-center px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                            <i class="fas fa-chevron-left mr-2"></i> Previous
+                        </span>
+                    </div>
+
+                    <!-- Page Numbers -->
+                    <div class="flex items-center gap-2">
+                        <span th:each="i : ${#numbers.sequence(1, totalPages)}"
+                              th:if="${i >= currentPage - 2 && i <= currentPage + 2}">
+                            <a th:if="${i != currentPage}"
+                               th:href="@{/patients/profile(page=${i}, speciality=${selectedSpeciality})}"
+                               th:text="${i}"
+                               class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 transition">
+                            </a>
+                            <span th:if="${i == currentPage}"
+                                  th:text="${i}"
+                                  class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold">
+                            </span>
+                        </span>
+                        <span th:if="${currentPage + 2 < totalPages}" class="text-gray-400">...</span>
+                    </div>
+
+                    <!-- Next Button -->
+                    <div>
+                        <a th:if="${currentPage < totalPages}"
+                           th:href="@{/patients/profile(page=${currentPage + 1}, speciality=${selectedSpeciality})}"
+                           class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition shadow-sm">
+                            Next <i class="fas fa-chevron-right ml-2"></i>
+                        </a>
+                        <span th:if="${currentPage == totalPages}"
+                              class="inline-flex items-center px-4 py-2 bg-gray-200 border border-gray-300 rounded-lg text-gray-400 cursor-not-allowed">
+                            Next <i class="fas fa-chevron-right ml-2"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

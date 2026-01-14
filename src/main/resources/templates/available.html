@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Doctors - MediCare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .card-hover:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(79, 70, 229, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col">
+
+<!-- Navbar -->
+
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-3">
+            <i class="fas fa-heartbeat text-3xl text-indigo-600"></i>
+            <span class="text-2xl font-bold text-gray-800">MediCare</span>
+        </a>
+
+        <!-- Navigation Links (No box/button, only text + icon, full consistency) -->
+        <div class="flex items-center gap-8 flex-wrap">
+            <!-- Find Doctors -->
+            <a href="/doctors"
+               class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-search"></i>
+                Find Doctors
+            </a>
+
+            <!-- My Profile -->
+            <a href="/patients/profile"
+               class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-user"></i>
+                My Profile
+            </a>
+
+            <!-- My Appointments -->
+            <a href="/patients/appointments"
+               class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-calendar-check"></i>
+                My Appointments
+            </a>
+
+            <!-- Logout (simple text + icon, no button box) -->
+            <a th:href="@{/auth/logout}"
+               class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+
+<!-- Main Content -->
+<main class="flex-grow max-w-7xl mx-auto w-full px-6 py-12">
+
+    <!-- Welcome Header -->
+    <div class="text-center mb-12">
+        <p class="text-xl text-gray-600">
+            Here are doctors with available slots in the next 7 days
+        </p>
+
+        <!-- Total Count -->
+        <div th:if="${totalDoctors > 0}" class="mt-4">
+            <p class="text-lg text-gray-700">
+                <i class="fas fa-user-md text-indigo-600 mr-2"></i>
+                <span class="font-semibold" th:text="${totalDoctors}">24</span>
+                available doctors found
+            </p>
+            <p class="text-sm text-gray-500 mt-1">
+                Showing
+                <span th:text="${(currentPage - 1) * pageSize + 1}">1</span>
+                -
+                <span th:text="${(currentPage - 1) * pageSize + #lists.size(availableDoctors)}">12</span>
+                of
+                <span th:text="${totalDoctors}">24</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Available Doctors Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" th:unless="${#lists.isEmpty(availableDoctors)}">
+        <div th:each="doc : ${availableDoctors}"
+             class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 card-hover">
+
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-32 flex items-center justify-center">
+                <i class="fas fa-user-md text-white text-6xl opacity-90"></i>
+            </div>
+
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-1" th:text="${doc.doctor.doctorName}">
+                    Dr. Sarah Ahmed
+                </h3>
+                <p class="text-sm text-indigo-600 font-semibold mb-4" th:text="${doc.doctor.speciality}">
+                    Pediatrician
+                </p>
+
+                <!-- Next Available Date -->
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-calendar-day mr-2 text-indigo-500"></i>
+                        <strong>Next Available:</strong>
+                    </p>
+                    <p class="text-lg font-semibold text-green-600 mt-1"
+                       th:text="${doc.nextAvailableDate != null ?
+                                  (#temporals.format(doc.nextAvailableDate, 'dd MMM yyyy')) : 'Not available'}">
+                        Tomorrow, 16 Dec 2025
+                    </p>
+                </div>
+
+                <!-- Available Slots This Week -->
+                <div class="mb-6">
+                    <p class="text-sm text-gray-600">
+                        <i class="fas fa-clock mr-2 text-indigo-500"></i>
+                        <strong>Free Slots (Next 7 Days):</strong>
+                    </p>
+                    <p class="text-2xl font-bold text-indigo-700 mt-1" th:text="${doc.availableSlotsNextWeek}">
+                        12
+                    </p>
+                </div>
+
+                <!-- Book Now Button -->
+                <a th:href="@{/doctors/{id}/profile(id=${doc.doctor.id})}"
+                   class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-center py-4 rounded-lg font-semibold text-lg transition shadow-md flex items-center justify-center gap-2">
+                    <i class="fas fa-calendar-plus text-xl"></i>
+                    Book Appointment
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div th:if="${totalPages > 1}" class="mt-12 flex justify-center items-center gap-3">
+
+        <!-- Previous Button -->
+        <a th:href="@{/available(page=${currentPage - 1}, size=${pageSize})}"
+           th:if="${currentPage > 1}"
+           class="px-4 py-2 bg-white text-indigo-600 rounded-lg shadow-md hover:bg-indigo-50 transition font-semibold border border-indigo-200">
+            <i class="fas fa-chevron-left mr-2"></i> Previous
+        </a>
+
+        <span th:if="${currentPage == 1}" class="px-4 py-2 bg-gray-200 text-gray-400 rounded-lg cursor-not-allowed font-semibold">
+            <i class="fas fa-chevron-left mr-2"></i> Previous
+        </span>
+
+        <!-- Page Numbers -->
+        <div class="flex gap-2">
+            <!-- First Page -->
+            <a th:if="${currentPage > 3}"
+               th:href="@{/available(page=1, size=${pageSize})}"
+               class="px-4 py-2 bg-white text-gray-700 rounded-lg shadow-md hover:bg-indigo-50 transition font-semibold border border-gray-200">
+                1
+            </a>
+            <span th:if="${currentPage > 3}" class="px-2 py-2 text-gray-500">...</span>
+
+            <!-- Dynamic Pages -->
+            <th:block th:each="i : ${#numbers.sequence(currentPage - 2, currentPage + 2)}">
+                <a th:if="${i > 0 && i <= totalPages && i != currentPage}"
+                   th:href="@{/available(page=${i}, size=${pageSize})}"
+                   th:text="${i}"
+                   class="px-4 py-2 bg-white text-gray-700 rounded-lg shadow-md hover:bg-indigo-50 transition font-semibold border border-gray-200">
+                    1
+                </a>
+
+                <span th:if="${i > 0 && i <= totalPages && i == currentPage}"
+                      th:text="${i}"
+                      class="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-lg font-bold border-2 border-indigo-700">
+                    1
+                </span>
+            </th:block>
+
+            <!-- Last Page -->
+            <span th:if="${currentPage < totalPages - 2}" class="px-2 py-2 text-gray-500">...</span>
+            <a th:if="${currentPage < totalPages - 2}"
+               th:href="@{/available(page=${totalPages}, size=${pageSize})}"
+               th:text="${totalPages}"
+               class="px-4 py-2 bg-white text-gray-700 rounded-lg shadow-md hover:bg-indigo-50 transition font-semibold border border-gray-200">
+                10
+            </a>
+        </div>
+
+        <!-- Next Button -->
+        <a th:href="@{/available(page=${currentPage + 1}, size=${pageSize})}"
+           th:if="${currentPage < totalPages}"
+           class="px-4 py-2 bg-white text-indigo-600 rounded-lg shadow-md hover:bg-indigo-50 transition font-semibold border border-indigo-200">
+            Next <i class="fas fa-chevron-right ml-2"></i>
+        </a>
+
+        <span th:if="${currentPage == totalPages}" class="px-4 py-2 bg-gray-200 text-gray-400 rounded-lg cursor-not-allowed font-semibold">
+            Next <i class="fas fa-chevron-right ml-2"></i>
+        </span>
+    </div>
+
+    <!-- No Available Doctors -->
+    <div th:if="${#lists.isEmpty(availableDoctors)}" class="text-center py-20">
+        <i class="fas fa-calendar-times text-8xl text-gray-300 mb-6"></i>
+        <h2 class="text-3xl font-bold text-gray-600 mb-4">
+            No doctors available this week
+        </h2>
+        <p class="text-xl text-gray-500 mb-8">
+            All doctors are fully booked in the next 7 days. Please check back later.
+        </p>
+        <a href="/doctors" class="bg-indigo-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:bg-indigo-700 transition">
+            Browse All Doctors
+        </a>
+    </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12 mt-auto">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div>
+            <div class="flex items-center gap-3 mb-4">
+                <i class="fas fa-heartbeat text-3xl text-indigo-500"></i>
+                <span class="text-2xl font-bold text-white">MediCare</span>
+            </div>
+            <p class="text-gray-400">Your trusted platform for finding and booking doctors online in Bangladesh.</p>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Quick Links</h4>
+            <ul class="space-y-3">
+                <li><a href="/available" class="hover:text-indigo-400 transition">Dashboard</a></li>
+                <li><a href="/doctors" class="hover:text-indigo-400 transition">Find Doctors</a></li>
+                <li><a href="/patients/profile" class="hover:text-indigo-400 transition">My Profile</a></li>
+                <li><a href="/patients/appointments" class="hover:text-indigo-400 transition">My Appointments</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Contact</h4>
+            <p class="flex items-center gap-2 mb-2"><i class="fas fa-phone-alt"></i> +880 96XX-XXXXXX</p>
+            <p class="flex items-center gap-2 mb-2"><i class="fas fa-envelope"></i> support@medicare.com</p>
+            <p class="flex items-center gap-2"><i class="fas fa-map-marker-alt"></i> Dhaka, Bangladesh</p>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Follow Us</h4>
+            <div class="flex gap-4 text-2xl">
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="border-t border-gray-800 mt-10 pt-8 text-center text-gray-500">
+        <p>&copy; 2025 MediCare. All rights reserved. Made with ❤️ in Bangladesh.</p>
+    </div>
+</footer>
+
+</body>
+</html>

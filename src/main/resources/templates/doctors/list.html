@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find a Doctor - MediCare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .card-hover:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex flex-col">
+
+<!-- Navbar -->
+
+<nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-3">
+            <i class="fas fa-heartbeat text-3xl text-indigo-600"></i>
+            <span class="text-2xl font-bold text-gray-800">MediCare</span>
+        </a>
+
+        <!-- Navigation Links -->
+        <div class="flex items-center gap-8">
+
+            <!-- Always Visible Links -->
+            <a href="/" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-home"></i>
+                Home
+            </a>
+
+            <!-- Logged In Users -->
+            <div sec:authorize="isAuthenticated()" class="flex items-center gap-8">
+
+                <!-- Doctor Links -->
+                <a th:href="@{/doctors/profile}"
+                   sec:authorize="hasRole('DOCTOR')"
+                   class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                    <i class="fas fa-user-md"></i>
+                    My Profile
+                </a>
+
+                <!-- Patient Links -->
+                <a th:href="@{/patients/profile}"
+                   sec:authorize="hasRole('PATIENT')"
+                   class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                    <i class="fas fa-user"></i>
+                    My Profile
+                </a>
+
+                <a th:href="@{/patients/appointments}"
+                   sec:authorize="hasRole('PATIENT')"
+                   class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                    <i class="fas fa-calendar-check"></i>
+                    Appointments
+                </a>
+
+                <!-- Logout - now consistent with others -->
+                <a th:href="@{/auth/logout}"
+                   class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Logout
+                </a>
+            </div>
+
+            <!-- Not Logged In Users -->
+            <div sec:authorize="isAnonymous()" class="flex items-center gap-8">
+                <a href="/auth/login"
+                   class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login
+                </a>
+
+                <a href="/auth/register"
+                   class="flex items-center gap-2 text-gray-700 hover:text-green-600 font-medium transition">
+                    <i class="fas fa-user-plus"></i>
+                    Register
+                </a>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="flex-grow max-w-7xl mx-auto w-full px-6 py-8">
+
+    <!-- Loading Indicator -->
+    <div id="doctorLoadingIndicator" class="hidden text-center py-20">
+        <i class="fas fa-spinner fa-spin text-indigo-600 text-5xl"></i>
+        <p class="text-gray-600 mt-6 text-xl">Searching doctors...</p>
+    </div>
+
+    <!-- Header + Filter Row -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 md:p-8 mb-10">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
+
+            <!-- Header Text -->
+            <div class="text-center md:text-left">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 flex items-center justify-center md:justify-start gap-3">
+                    <svg class="w-10 h-10 md:w-12 md:h-12 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    Find a Doctor
+                </h1>
+                <p class="text-lg text-gray-600 mt-3">
+                    Browse doctors by speciality and book your appointment easily
+                </p>
+            </div>
+
+            <!-- Search + Filter -->
+            <div class="w-full md:w-auto space-y-4">
+                <!-- Doctor Name Search -->
+                <div class="relative">
+                    <input type="text" id="doctorSearch" placeholder="Search by doctor name..."
+                           class="w-full md:w-96 px-6 py-4 text-base font-medium text-gray-700 bg-white border-2 border-indigo-300 rounded-xl shadow-md focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 transition-all">
+                    <svg class="absolute inset-y-0 right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-indigo-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+
+                <!-- Speciality Filter + Badge -->
+                <div class="flex flex-col sm:flex-row gap-4 items-center">
+                    <form th:action="@{/doctors}" method="get" class="relative flex-1">
+                        <select name="speciality" onchange="this.form.submit()"
+                                class="w-full sm:w-80 px-6 py-4 text-base font-medium text-gray-700 bg-white border-2 border-indigo-300 rounded-xl shadow-md focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 cursor-pointer appearance-none transition-all">
+                            <option value="">All Specialities</option>
+                            <option th:each="spec : ${allSpecialities}"
+                                    th:value="${spec}"
+                                    th:text="${spec}"
+                                    th:selected="${spec == selectedSpeciality}"></option>
+                        </select>
+                        <svg class="absolute inset-y-0 right-4 top-1/2 -translate-y-1/2 w-6 h-6 text-indigo-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </form>
+
+                    <!-- Showing Badge (Desktop) -->
+                    <div class="hidden sm:block" th:if="${selectedSpeciality != null}">
+                        <span class="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 text-indigo-800 font-medium text-sm shadow-sm">
+                            Showing: <strong th:text="${selectedSpeciality}" class="ml-1"></strong>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Showing Badge (Mobile) -->
+                <div class="text-center sm:hidden" th:if="${selectedSpeciality != null}">
+                    <span class="inline-flex items-center px-4 py-2 rounded-full bg-indigo-100 text-indigo-800 font-medium text-sm shadow-sm">
+                        Showing: <strong th:text="${selectedSpeciality}" class="ml-1"></strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Doctors Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10"
+         th:unless="${#lists.isEmpty(doctors)}">
+
+        <div th:each="dto : ${doctors}"
+             class="bg-white rounded-xl shadow-lg overflow-hidden transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-32 flex items-center justify-center relative">
+                <i class="fas fa-user-md text-white text-6xl opacity-90"></i>
+                <!-- Rating Badge -->
+                <div th:if="${dto.averageRating != null and dto.reviewCount > 0}"
+                     class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow">
+                    <div class="flex items-center gap-1">
+                        <i class="fas fa-star text-yellow-400 text-sm"></i>
+                        <span class="text-sm font-semibold" th:text="${#numbers.formatDecimal(dto.averageRating, 1, 1)}">4.9</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-1" th:text="${dto.doctor.doctorName}">Dr. Name</h3>
+                <p class="text-sm text-indigo-600 font-semibold mb-4" th:text="${dto.doctor.speciality}">Speciality</p>
+
+                <div class="space-y-2 text-sm text-gray-600">
+                    <p><i class="fas fa-graduation-cap mr-2 text-indigo-500"></i> <span th:text="${dto.doctor.degree}">MBBS</span></p>
+                    <p><i class="fas fa-map-marker-alt mr-2 text-indigo-500"></i> <span th:text="${dto.doctor.address}">Address</span></p>
+                    <p><i class="fas fa-clock mr-2 text-indigo-500"></i> <span th:text="${dto.doctor.consultationStartTime + ' - ' + dto.doctor.consultationEndTime}">09:00 - 18:00</span></p>
+                    <p><i class="fas fa-calendar-alt mr-2 text-indigo-500"></i> Off Days:
+                        <span th:text="${dto.doctor.offDays != null and !dto.doctor.offDays.isEmpty() ? dto.doctor.offDays : 'None'}">None</span>
+                    </p>
+                </div>
+
+                <div class="mt-8">
+                    <a th:href="@{/doctors/{id}/profile(id=${dto.doctor.id})}"
+                       class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-center py-4 rounded-lg font-semibold text-lg transition shadow-md flex items-center justify-center gap-2">
+                        <i class="fas fa-user-circle text-xl"></i> View Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Count + Showing Info -->
+    <div th:if="${totalDoctors > 0}" class="text-center mb-10 bg-gray-50 py-6 rounded-xl shadow-sm">
+        <p class="text-xl font-semibold text-gray-800">
+            <i class="fas fa-user-md text-indigo-600 mr-2"></i>
+            <span th:text="${totalDoctors}">23</span> doctors found
+            <span th:if="${selectedSpeciality != null}" class="text-gray-600">
+                for <strong th:text="${selectedSpeciality}"></strong>
+            </span>
+        </p>
+        <p class="text-base text-gray-600 mt-3">
+            Showing
+            <span th:text="${(currentPage - 1) * pageSize + 1}">1</span> -
+            <span th:text="${currentPage * pageSize > totalDoctors ? totalDoctors : currentPage * pageSize}">12</span>
+            of <span th:text="${totalDoctors}">23</span>
+        </p>
+    </div>
+
+    <!-- Pagination -->
+    <div th:if="${totalPages > 1}" class="mt-12 mb-16 flex justify-center items-center gap-4 flex-wrap">
+
+        <!-- Previous -->
+        <a th:href="@{/doctors(speciality=${selectedSpeciality}, page=${currentPage - 1}, size=${pageSize})}"
+           th:if="${currentPage > 1}"
+           class="px-6 py-3 bg-white text-indigo-600 rounded-xl shadow-md hover:bg-indigo-50 transition font-semibold border-2 border-indigo-300 flex items-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+        </a>
+        <span th:unless="${currentPage > 1}" class="px-6 py-3 bg-gray-200 text-gray-400 rounded-xl font-semibold cursor-not-allowed flex items-center gap-2">
+            <i class="fas fa-chevron-left"></i> Previous
+        </span>
+
+        <!-- Page Numbers -->
+        <div class="flex gap-2">
+            <th:block th:each="i : ${#numbers.sequence(1, totalPages)}">
+                <a th:if="${i != currentPage}"
+                   th:href="@{/doctors(speciality=${selectedSpeciality}, page=${i}, size=${pageSize})}"
+                   th:text="${i}"
+                   class="w-12 h-12 flex items-center justify-center rounded-lg border-2 border-gray-300 hover:border-indigo-500 hover:bg-indigo-50 transition font-medium">
+                </a>
+                <span th:if="${i == currentPage}"
+                      th:text="${i}"
+                      class="w-12 h-12 flex items-center justify-center rounded-lg bg-indigo-600 text-white font-bold shadow-lg">
+                </span>
+            </th:block>
+        </div>
+
+        <!-- Next -->
+        <a th:href="@{/doctors(speciality=${selectedSpeciality}, page=${currentPage + 1}, size=${pageSize})}"
+           th:if="${currentPage < totalPages}"
+           class="px-6 py-3 bg-white text-indigo-600 rounded-xl shadow-md hover:bg-indigo-50 transition font-semibold border-2 border-indigo-300 flex items-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+        </a>
+        <span th:unless="${currentPage < totalPages}" class="px-6 py-3 bg-gray-200 text-gray-400 rounded-xl font-semibold cursor-not-allowed flex items-center gap-2">
+            Next <i class="fas fa-chevron-right"></i>
+        </span>
+    </div>
+
+    <!-- No Doctors Message -->
+    <div th:if="${#lists.isEmpty(doctors)}" class="text-center py-24">
+        <i class="fas fa-user-md text-9xl text-gray-200 mb-8"></i>
+        <h2 class="text-3xl font-medium text-gray-600" th:if="${selectedSpeciality == null}">
+            No doctors available at the moment.
+        </h2>
+        <h2 class="text-3xl font-medium text-gray-600" th:unless="${selectedSpeciality == null}">
+            No doctors found for "<strong th:text="${selectedSpeciality}"></strong>" speciality.
+        </h2>
+        <p class="text-gray-500 mt-4 text-lg">Please try another category or check back later.</p>
+    </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12 mt-auto">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div>
+            <div class="flex items-center gap-3 mb-4">
+                <i class="fas fa-heartbeat text-3xl text-indigo-500"></i>
+                <span class="text-2xl font-bold text-white">MediCare</span>
+            </div>
+            <p class="text-gray-400">Your trusted platform for finding and booking doctors online in Bangladesh.</p>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Quick Links</h4>
+            <ul class="space-y-3">
+                <li><a href="/" class="hover:text-indigo-400 transition">Home</a></li>
+                <li><a href="/doctors" class="hover:text-indigo-400 transition">Find Doctors</a></li>
+                <li><a href="/patients/profile" class="hover:text-indigo-400 transition">My Profile</a></li>
+                <li><a href="/patients/appointments" class="hover:text-indigo-400 transition">Appointments</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Contact</h4>
+            <p class="flex items-center gap-2 mb-2"><i class="fas fa-phone-alt"></i> +880 96XX-XXXXXX</p>
+            <p class="flex items-center gap-2 mb-2"><i class="fas fa-envelope"></i> support@medicare.com</p>
+            <p class="flex items-center gap-2"><i class="fas fa-map-marker-alt"></i> Dhaka, Bangladesh</p>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Follow Us</h4>
+            <div class="flex gap-4 text-2xl">
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="border-t border-gray-800 mt-10 pt-8 text-center text-gray-500">
+        <p>&copy; 2025 MediCare. All rights reserved. Made with ❤️ in Bangladesh.</p>
+    </div>
+</footer>
+
+
+<script>
+    let doctorCurrentPage = 0;
+    let searchTimeout = null;
+
+    // Live search with debouncing
+    document.getElementById('doctorSearch').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            doctorCurrentPage = 0; // Reset to first page on new search
+            filterDoctors();
+        }, 300); // Wait 300ms after user stops typing
+    });
+
+    // Also update when speciality changes
+    const specialitySelect = document.querySelector('select[name="speciality"]');
+    if (specialitySelect) {
+        specialitySelect.addEventListener('change', function() {
+            doctorCurrentPage = 0;
+            filterDoctors();
+        });
+    }
+
+    function filterDoctors(page = 0) {
+        doctorCurrentPage = page;
+
+        const speciality = document.querySelector('select[name="speciality"]')?.value || '';
+        const searchQuery = document.getElementById('doctorSearch').value;
+
+        const params = new URLSearchParams();
+        if (speciality) params.append('speciality', speciality);
+        if (searchQuery) params.append('doctorName', searchQuery);
+        params.append('page', page + 1); // Your backend uses 1-based pagination
+        params.append('size', '12');
+
+        // Show loading indicator
+        document.getElementById('doctorLoadingIndicator')?.classList.remove('hidden');
+        const mainContent = document.querySelector('main');
+        if (mainContent) mainContent.style.opacity = '0.5';
+
+        fetch('/doctors?' + params.toString(), {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // Update the doctors grid
+            const newGrid = doc.querySelector('.grid');
+            const currentGrid = document.querySelector('.grid');
+            if (newGrid && currentGrid) {
+                currentGrid.innerHTML = newGrid.innerHTML;
+            }
+
+            // Update pagination
+            const newPagination = doc.querySelector('.mt-12.flex.justify-center');
+            const currentPagination = document.querySelector('.mt-12.flex.justify-center');
+            if (newPagination && currentPagination) {
+                currentPagination.innerHTML = newPagination.innerHTML;
+            }
+
+            // Update total count
+            const newCount = doc.querySelector('.text-center.mb-8');
+            const currentCount = document.querySelector('.text-center.mb-8');
+            if (newCount && currentCount) {
+                currentCount.innerHTML = newCount.innerHTML;
+            }
+
+            // Hide loading indicator
+            document.getElementById('doctorLoadingIndicator')?.classList.add('hidden');
+            if (mainContent) mainContent.style.opacity = '1';
+        })
+        .catch(error => {
+            console.error('Error filtering doctors:', error);
+            document.getElementById('doctorLoadingIndicator')?.classList.add('hidden');
+            if (mainContent) mainContent.style.opacity = '1';
+            alert('Error loading doctors. Please try again.');
+        });
+    }
+</script>
+
+</body>
+</html>

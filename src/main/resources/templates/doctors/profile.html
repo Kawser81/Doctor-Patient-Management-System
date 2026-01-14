@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}" th:if="${_csrf}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" th:if="${_csrf}"/>
+    <title th:text="${doctor.doctorName} + ' - Profile'">Doctor Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .calendar-cell {
+            min-height: 80px;
+            transition: all 0.2s ease;
+        }
+        .calendar-cell:hover:not(.past-date):not(.off-day) {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .calendar-cell.clickable {
+            cursor: pointer;
+        }
+        .available-date {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        .partially-booked {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+        .fully-booked {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        .off-day {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .past-date {
+            background: #e5e7eb;
+            color: #9ca3af;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .today-marker {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        .slot-card {
+            transition: all 0.3s ease;
+        }
+        .slot-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex !important;
+        }
+
+        .modal-content {
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-content {
+            animation: slideUp 0.3s ease;
+            max-width: 90vw;  /* Responsive width */
+            max-height: 90vh;
+            overflow: hidden;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .success-checkmark {
+            animation: scaleIn 0.5s ease;
+        }
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+
+<!-- Navigation -->
+<nav class="bg-white shadow-md sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-3">
+            <i class="fas fa-heartbeat text-3xl text-indigo-600"></i>
+            <span class="text-2xl font-bold text-gray-800">MediCare</span>
+        </a>
+
+        <!-- Doctor Navigation -->
+        <div th:if="${#authorization.expression('hasRole(''DOCTOR'')')}" class="flex items-center gap-8 flex-wrap">
+            <a href="/" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a th:href="@{'/doctors/' + ${doctor.id} + '/block-days'}" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-calendar-times"></i> Block Days
+            </a>
+            <a th:href="@{/doctors/my-appointments}" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-calendar-alt"></i> My Appointments
+            </a>
+            <a th:href="@{'/doctors/' + ${doctor.id} + '/edit'}" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-edit"></i> Edit Profile
+            </a>
+            <a th:href="@{/auth/logout}" class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+
+        <!-- Patient Navigation -->
+        <div th:if="${#authorization.expression('hasRole(''PATIENT'')')}" class="flex items-center gap-8 flex-wrap">
+            <a href="/" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <a th:href="@{/patients/profile}" class="flex items-center gap-2 text-gray-700 hover:text-indigo-600 font-medium transition">
+                <i class="fas fa-user"></i> My Profile
+            </a>
+            <a th:href="@{/auth/logout}" class="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Container -->
+<div class="max-w-7xl mx-auto p-6 mt-8">
+
+    <div class="max-w-7xl mx-auto p-6 mt-8">
+        <!-- Doctor Header Card -->
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden mb-6">
+            <div class="bg-gradient-to-r from-purple-500 to-pink-600 h-48 relative">
+                <div class="absolute -bottom-16 left-8 w-32 h-32 bg-white rounded-full shadow-lg flex items-center justify-center">
+                    <i class="fas fa-user-md text-6xl text-purple-600"></i>
+                </div>
+            </div>
+
+            <div class="pt-20 pb-8 px-8">
+                <h1 class="text-3xl font-bold text-gray-800" th:text="${doctor.doctorName}">Dr. Sarah Ahmed</h1>
+                <p class="text-xl text-purple-600 font-medium mt-1" th:text="${doctor.speciality}">Pediatrician</p>
+
+                <!-- Rating Summary in Profile Card -->
+                <div th:if="${reviewCount != null and reviewCount > 0}" class="flex items-center gap-2 mt-4 mb-6">
+                    <div class="flex items-center gap-1">
+                            <span th:each="i : ${#numbers.sequence(1, 5)}">
+                                <i th:if="${i <= averageRating}" class="fas fa-star text-yellow-400"></i>
+                                <i th:unless="${i <= averageRating}" class="far fa-star text-gray-300"></i>
+                            </span>
+                    </div>
+                    <div class="text-lg font-bold text-gray-800" th:text="${#numbers.formatDecimal(averageRating, 1, 1)}">4.5</div>
+                    <div class="text-sm text-gray-600">(<span th:text="${reviewCount}">15</span> reviews)</div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 text-gray-700">
+                    <div class="space-y-3">
+                        <p><i class="fas fa-graduation-cap text-purple-500 mr-2"></i> <strong>Degree:</strong> <span th:text="${doctor.degree}">MBBS, DCH</span></p>
+                        <p><i class="fas fa-envelope text-purple-500 mr-2"></i> <strong>Email:</strong> <span th:text="${doctor.email}"><a href="mailto:sarah.ahmed@clinic.com" class="text-purple-600 hover:underline">[email protected]</a></span></p>
+                        <p><i class="fas fa-clock text-purple-500 mr-2"></i> <strong>Consultation:</strong>
+                            <span th:text="${doctor.consultationStartTime} + ' - ' + ${doctor.consultationEndTime}">9:00 AM - 6:00 PM</span>
+                        </p>
+                    </div>
+                    <div class="space-y-3">
+                        <p><i class="fas fa-map-marker-alt text-purple-500 mr-2"></i> <strong>Address:</strong> <span th:text="${doctor.address}">456 Care Ave, Dhaka, Bangladesh</span></p>
+                        <p><i class="fas fa-phone text-purple-500 mr-2"></i> <strong>Contact:</strong> <span th:text="${doctor.contact}">+880 1823-456789</span></p>
+                        <p><i class="fas fa-money-bill-wave text-purple-500 mr-2"></i> <strong>Fee:</strong>
+                            <span th:text="'৳' + ${doctor.consultationFee}">৳1,200</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Off Days Notice -->
+                <div class="mt-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg" th:if="${doctor.offDays != null and not #strings.isEmpty(doctor.offDays)}">
+                    <div class="flex items-center">
+                        <i class="fas fa-calendar-times text-red-600 text-xl mr-3"></i>
+                        <div>
+                            <h4 class="font-bold text-red-800">Off Days</h4>
+                            <p class="text-red-700 text-sm mt-1">
+                                Doctor is not available on: <span class="font-semibold" th:text="${doctor.offDays}">FRIDAY, SATURDAY</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-r-lg" th:if="${doctor.offDays == null or #strings.isEmpty(doctor.offDays)}">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl mr-3"></i>
+                        <div>
+                            <h4 class="font-bold text-green-800">Always Available</h4>
+                            <p class="text-green-700 text-sm mt-1">
+                                Doctor is available all 7 days of the week
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+
+        <!-- Reviews Section (Full, with Fixed Stars) -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">Patient Reviews
+                    <span class="text-sm text-gray-500 ml-2" th:text="'(' + ${reviewCount} + ')'">(0)</span>
+                </h3>
+                <div th:if="${averageRating != null and reviewCount > 0}" class="flex items-center gap-2">
+                    <span class="text-sm font-medium" th:text="${#numbers.formatDecimal(averageRating, 1, 1)} + '/5'">4.2/5</span>
+                    <div class="flex">
+                        <i th:each="i : ${#numbers.sequence(1, 5)}"
+                           class="fas fa-star"
+                           th:classappend="${i <= averageRating} ? 'text-yellow-400' : 'text-gray-300'"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${reviewCount == 0}" class="text-center py-8 text-gray-500">
+                <i class="fas fa-star text-3xl mb-2"></i>
+                <p>No reviews yet. Be the first!</p>
+            </div>
+
+            <div th:each="review : ${topReviews}" class="border-b pb-4 mb-4 last:border-b-0">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-1">
+                        <i th:each="i : ${#numbers.sequence(1, 5)}"
+                           class="fas fa-star"
+                           th:classappend="${i <= review.rating} ? 'text-yellow-400' : 'text-gray-300'"></i>
+                        <span class="text-sm text-gray-500 ml-2" th:text="${review.rating} + '/5'">5/5</span>
+                    </div>
+                </div>
+                <p th:if="${review.comment != null and !review.comment.isEmpty()}"
+                   class="text-gray-700 mb-2" th:text="${review.comment}">Great doctor!</p>
+                <small class="text-gray-500"
+                       th:text="'By ' + ${review.patientName} + ' on ' + ${#temporals.format(review.createdAt, 'MMM dd, yyyy HH:mm')}"
+                >By John Doe on Jan 01, 2024 10:00</small>
+            </div>
+
+            <div th:if="${reviewCount > 3}" class="text-center pt-4">
+                <button id="viewAllReviewsBtn" onclick="openReviewsModal()"
+                        class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition">
+                    View All Reviews (<span th:text="${reviewCount - 3} + ' more'">2 more</span>)
+                </button>
+            </div>
+        </div>
+
+        <!-- Calendar Section (Full Width) -->
+        <div class="bg-white rounded-xl shadow-xl p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <i class="fas fa-calendar-alt text-indigo-600 mr-3"></i>
+                    Appointment Calendar
+                </h2>
+                <div class="flex gap-2">
+                    <a th:href="@{/doctors/{id}/profile(id=${doctor.id}, year=${prevYear}, month=${prevMonth})}"
+                       class="px-4 py-2 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                    <div class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold" th:text="${monthName} + ' ' + ${currentYear}">
+                        December 2025
+                    </div>
+                    <a th:href="@{/doctors/{id}/profile(id=${doctor.id}, year=${nextYear}, month=${nextMonth})}"
+                       class="px-4 py-2 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-xl p-4">
+                <div class="grid grid-cols-7 gap-2 mb-2">
+                    <div class="text-center font-bold text-gray-600 py-2 text-sm">Sun</div>
+                    <div class="text-center font-bold text-gray-600 py-2 text-sm">Mon</div>
+                    <div class="text-center font-bold text-gray-600 py-2 text-sm">Tue</div>
+                    <div class="text-center font-bold text-gray-600 py-2 text-sm">Wed</div>
+                    <div class="text-center font-bold text-gray-600 py-2 text-sm">Thu</div>
+                    <div class="text-center font-bold text-gray-600 py-2 text-sm">Fri</div>
+                    <div class="text-center font-bold text-gray-600 py-2 text-sm">Sat</div>
+                </div>
+                <div class="grid grid-cols-7 gap-2" id="calendarGrid">
+                    <!-- Calendar dates will be inserted here -->
+                </div>
+            </div>
+
+            <div class="mt-4 flex gap-4 text-sm flex-wrap justify-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded available-date"></div>
+                    <span>Available</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded partially-booked"></div>
+                    <span>Partially Booked</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded fully-booked"></div>
+                    <span>Fully Booked</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded off-day"></div>
+                    <span>Off Day</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500 today-marker"></div>
+                    <span>Today</span>
+                </div>
+            </div>
+
+            <div class="mt-6 flex gap-4">
+                <a href="/doctors" class="flex-1 border-2 border-indigo-600 text-indigo-600 text-center py-3 rounded-lg hover:bg-indigo-50 transition font-medium">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Doctors List
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Slot Selection Modal -->
+<div id="slotModal" class="modal">
+    <div class="modal-content bg-white rounded-xl shadow-2xl max-w-xl w-full mx-4 max-h-[85vh] overflow-y-auto">
+        <div class="sticky top-0 bg-gradient-to-r from-purple-500 to-pink-600 text-white p-5 rounded-t-xl z-10">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold">Select Time Slot</h3>
+                    <p class="text-purple-100 text-sm mt-1" id="selectedDateDisplay">Monday, December 15, 2025</p>
+                </div>
+                <button onclick="closeModal()" class="text-white hover:bg-white/20 rounded-full p-2 transition">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-5">
+            <div id="loadingSlots" class="text-center py-6 hidden">
+                <i class="fas fa-spinner fa-spin text-3xl text-purple-600 mb-2"></i>
+                <p class="text-gray-600 text-sm">Loading available slots...</p>
+            </div>
+
+            <div id="slotsContainer" class="space-y-2">
+                <!-- Slots will be loaded here -->
+            </div>
+
+            <div class="mt-4 p-3 bg-purple-50 rounded-lg">
+                <h4 class="font-semibold text-gray-800 text-sm mb-2 flex items-center">
+                    <i class="fas fa-info-circle text-purple-600 mr-2"></i>
+                    Booking Information
+                </h4>
+                <ul class="text-xs text-gray-600 space-y-1">
+                    <li>• Each slot is 20 minutes</li>
+                    <li>• Fee: <span th:text="'৳' + ${doctor.consultationFee}" class="font-semibold">৳1,200</span></li>
+                    <li>• Arrive 10 minutes early</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Confirmation Modal -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="text-center mb-4">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-check text-3xl text-green-600"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800">Confirm Booking</h3>
+            </div>
+
+            <div class="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Doctor:</span>
+                    <span class="font-semibold" th:text="${doctor.doctorName}">Dr. Sarah Ahmed</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Speciality:</span>
+                    <span class="font-semibold" th:text="${doctor.speciality}">Pediatrician</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Date:</span>
+                    <span class="font-semibold" id="confirmDate">Dec 15, 2025</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Time:</span>
+                    <span class="font-semibold" id="confirmTime">9:00 AM - 9:20 AM</span>
+                </div>
+                <div class="flex justify-between border-t pt-2 mt-2">
+                    <span class="text-gray-600">Fee:</span>
+                    <span class="font-bold text-purple-600" th:text="'৳' + ${doctor.consultationFee}">৳1,200</span>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-5">
+                <button onclick="closeConfirmModal()" class="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg hover:bg-gray-50 font-medium transition text-sm">
+                    Cancel
+                </button>
+                <button onclick="confirmBooking()" class="flex-1 bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-medium transition text-sm">
+                    <i class="fas fa-check-circle mr-2"></i> Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" class="modal">
+    <div class="modal-content bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="p-6 text-center">
+            <div class="success-checkmark w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-check text-3xl text-green-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Booking Successful!</h3>
+            <p class="text-gray-600 text-sm mb-4">Your appointment has been confirmed.</p>
+
+            <div class="bg-purple-50 rounded-lg p-4 mb-5 text-left">
+                <div class="text-sm space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Appointment ID:</span>
+                        <span class="font-mono font-semibold text-xs" id="appointmentId">#APT-12345</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Date:</span>
+                        <span class="font-semibold" id="successDate">Dec 15, 2025</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Time:</span>
+                        <span class="font-semibold" id="successTime">9:00 AM - 9:20 AM</span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeSuccessModal()" class="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 font-medium transition text-sm">
+                <i class="fas fa-check mr-2"></i> Done
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 py-12">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div>
+            <div class="flex items-center gap-3 mb-4">
+                <i class="fas fa-heartbeat text-3xl text-indigo-500"></i>
+                <span class="text-2xl font-bold text-white">MediCare</span>
+            </div>
+            <p class="text-gray-400">Your trusted platform for finding and booking doctors online in Bangladesh.</p>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Quick Links</h4>
+            <ul class="space-y-3">
+                <li><a href="/" class="hover:text-indigo-400 transition">Home</a></li>
+                <li><a href="/doctors" class="hover:text-indigo-400 transition">Find Doctors</a></li>
+                <li><a href="/auth/login" class="hover:text-indigo-400 transition">Login</a></li>
+                <li><a href="/auth/register" class="hover:text-indigo-400 transition">Register</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Contact</h4>
+            <p class="flex items-center gap-2 mb-2"><i class="fas fa-phone-alt"></i> +880 96XX-XXXXXX</p>
+            <p class="flex items-center gap-2 mb-2"><i class="fas fa-envelope"></i> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="81f2f4f1f1eef3f5c1ece4e5e8e2e0f3e4afe2eeec">[email&#160;protected]</a></p>
+            <p class="flex items-center gap-2"><i class="fas fa-map-marker-alt"></i> Dhaka, Bangladesh</p>
+        </div>
+        <div>
+            <h4 class="text-white font-semibold mb-4 text-lg">Follow Us</h4>
+            <div class="flex gap-4 text-2xl">
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="hover:text-indigo-400 transition"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </div>
+    <div class="border-t border-gray-800 mt-10 pt-8 text-center text-gray-500">
+        <p>&copy; 2025 MediCare. All rights reserved. Made with ❤️ in Bangladesh.</p>
+    </div>
+</footer>
+
+
+<script th:inline="javascript">
+    // Get data from Thymeleaf
+    const doctorId = /*[[${doctor.id}]]*/ 1;
+    const isPatient = /*[[${isPatient}]]*/ false;
+    const isDoctor = /*[[${isDoctor}]]*/ false;
+    const currentYear = /*[[${currentYear}]]*/ 2026;
+    const currentMonth = /*[[${currentMonth}]]*/ 12;
+    const calendarDataRaw = /*[[${calendarDays}]]*/ [];
+
+    // DEBUG: Log initial values
+    console.log('=== INITIALIZATION ===');
+    console.log('doctorId:', doctorId);
+    console.log('isPatient:', isPatient);
+    console.log('isDoctor:', isDoctor);
+    console.log('currentYear:', currentYear);
+    console.log('currentMonth:', currentMonth);
+    console.log('Raw calendar data:', calendarDataRaw);
+
+    let selectedDate = null;
+    let selectedSlotId = null;
+    let selectedSlotInfo = null;
+
+
+
+    // Parse server date
+    function parseServerDate(dateObj) {
+        if (!dateObj) return null;
+        if (Array.isArray(dateObj)) {
+            return new Date(dateObj[0], dateObj[1] - 1, dateObj[2]);
+        }
+        if (dateObj.year && dateObj.month && dateObj.day) {
+            return new Date(dateObj.year, dateObj.month - 1, dateObj.day);
+        }
+        if (typeof dateObj === 'string') {
+            return new Date(dateObj);
+        }
+        return new Date(dateObj);
+    }
+
+    function renderCalendar() {
+        console.log('=== RENDERING CALENDAR ===');
+        const grid = document.getElementById('calendarGrid');
+        if (!grid) {
+            console.error('Calendar grid not found');
+            return;
+        }
+
+        grid.innerHTML = '';
+
+        if (!calendarDataRaw || calendarDataRaw.length === 0) {
+            grid.innerHTML = '<div class="col-span-7 text-center text-gray-500 py-8">No calendar data available</div>';
+            console.error('No calendar data available');
+            return;
+        }
+
+        console.log('Rendering calendar with', calendarDataRaw.length, 'days');
+
+        const firstDate = parseServerDate(calendarDataRaw[0].date);
+        const firstDay = firstDate.getDay();
+
+        // Add empty cells
+        for (let i = 0; i < firstDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'calendar-cell';
+            grid.appendChild(emptyCell);
+        }
+
+        // Render each day
+        calendarDataRaw.forEach((dayStatus, index) => {
+            const date = parseServerDate(dayStatus.date);
+            const day = date.getDate();
+            const status = dayStatus.status;
+            const isToday = dayStatus.today || false;
+            const availableCount = dayStatus.availableCount || 0;
+
+            const cell = document.createElement('div');
+            cell.className = 'calendar-cell rounded-lg p-2 text-center relative ';
+            cell.setAttribute('data-date', date.toISOString());
+            cell.setAttribute('data-status', status);
+
+            if (status === 'past') {
+                cell.className += 'past-date';
+            } else if (status === 'off') {
+                cell.className += 'off-day';
+            } else if (status === 'available') {
+                cell.className += 'available-date font-semibold clickable';
+            } else if (status === 'partial') {
+                cell.className += 'partially-booked font-semibold clickable';
+            } else if (status === 'full') {
+                cell.className += 'fully-booked font-semibold';
+            }
+
+            cell.innerHTML = `
+                <div class="text-lg">${day}</div>
+                ${isToday ? '<div class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full today-marker"></div>' : ''}
+                ${status === 'available' || status === 'partial' ?
+                    `<div class="text-xs mt-1">${availableCount} slot${availableCount > 1 ? 's' : ''}</div>` :
+                    status === 'full' ? '<div class="text-xs mt-1">Full</div>' :
+                    status === 'off' ? '<div class="text-xs mt-1">Off</div>' : ''
+                }
+            `;
+
+            // Add click event
+            if (status === 'available' || status === 'partial') {
+                console.log(`Adding click handler for date: ${date.toDateString()}`);
+                cell.addEventListener('click', function(e) {
+                    console.log('=== CELL CLICKED ===');
+                    console.log('Clicked date:', date);
+                    openSlotModal(date);
+                });
+                cell.style.cursor = 'pointer';
+            }
+
+            grid.appendChild(cell);
+        });
+
+        console.log('Calendar rendered successfully');
+    }
+
+    async function handleDoctorBlockDay(date) {
+        const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        const confirmed = confirm(`Want to block this day?\n\nDate: ${dateStr}\n\nAre you sure?`);
+        if (!confirmed) return;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+            const formData = new FormData();
+            formData.append('date', date.toISOString().split('T')[0]);
+
+            const response = await fetch(`/doctors/${doctorId}/block-day`, {
+                method: 'POST',
+                headers: {
+                    ...(csrfToken && {'X-CSRF-TOKEN': csrfToken})
+                },
+                body: formData
+            });
+
+            if (!response.ok) throw new Error('Failed to block day');
+            alert('Day blocked successfully!');
+            window.location.reload();
+        } catch (error) {
+            console.error('Error blocking day:', error);
+            alert('Failed to block day. Please try again.');
+        }
+    }
+
+    async function openSlotModal(date) {
+        console.log('=== openSlotModal CALLED ===');
+        console.log('isPatient:', isPatient);
+        console.log('isDoctor:', isDoctor);
+        console.log('Selected date:', date);
+
+        if (isDoctor) {
+            handleDoctorBlockDay(date);
+            return;
+        }
+
+        if (!isPatient) {
+            alert('⚠️ Only patients can book appointments.\n\nPlease login as a patient to book slots.');
+            return;
+        }
+
+        selectedDate = date;
+        document.getElementById('selectedDateDisplay').textContent =
+            date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        const modal = document.getElementById('slotModal');
+        const loadingDiv = document.getElementById('loadingSlots');
+        const container = document.getElementById('slotsContainer');
+
+        modal.classList.add('active');
+        loadingDiv.classList.remove('hidden');
+        container.innerHTML = '';
+
+        const dateStr = date.toISOString().split('T')[0];
+        const url = `/doctors/${doctorId}/api/slots?date=${dateStr}`;
+        console.log('Fetching from URL:', url);
+
+        try {
+            const response = await fetch(url);
+            console.log('Response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Response error:', errorText);
+                throw new Error('Failed to load slots: ' + response.statusText);
+            }
+
+            const contentType = response.headers.get("content-type");
+            console.log('Content-Type:', contentType);
+
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await response.text();
+                console.error('Non-JSON response:', text);
+                throw new Error('Server returned non-JSON response');
+            }
+
+            const slots = await response.json();
+            console.log('Received slots:', slots);
+            console.log('Number of slots:', slots.length);
+
+            loadingDiv.classList.add('hidden');
+
+            if (!slots || slots.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <i class="fas fa-calendar-times text-4xl mb-2"></i>
+                        <p>No slots available for this date</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group slots by session
+            const sessions = { 'Morning': [], 'Afternoon': [], 'Evening': [] };
+            slots.forEach(slot => {
+                console.log('Processing slot:', slot);
+                const sessionName = slot.session || 'Morning';
+                if (sessions[sessionName]) {
+                    sessions[sessionName].push(slot);
+                }
+            });
+
+            // Render slots
+            Object.keys(sessions).forEach(sessionName => {
+                if (sessions[sessionName].length > 0) {
+                    const sessionTitle = document.createElement('div');
+                    sessionTitle.className = 'text-lg font-bold text-gray-700 mt-4 mb-2 flex items-center';
+                    const icon = sessionName === 'Morning' ? 'fa-sun' :
+                                sessionName === 'Afternoon' ? 'fa-cloud-sun' : 'fa-moon';
+                    sessionTitle.innerHTML = `<i class="fas ${icon} text-yellow-500 mr-2"></i> ${sessionName} Session`;
+                    container.appendChild(sessionTitle);
+
+                    sessions[sessionName].forEach(slot => {
+                        const slotCard = document.createElement('div');
+                        slotCard.className = 'slot-card border-2 border-purple-200 bg-white hover:border-purple-400 cursor-pointer rounded-lg p-4';
+                        slotCard.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                                            <i class="fas fa-clock text-xl text-purple-600"></i>
+                                        </div>
+                                        <div>
+                                            <div class="font-bold text-gray-800">${slot.slotName}</div>
+                                            <div class="text-sm text-gray-600">${slot.startTime} - ${slot.endTime}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onclick="selectSlot(${slot.id}, '${slot.slotName}', '${slot.startTime}', '${slot.endTime}')"
+                                    class="px-6 py-2 rounded-lg font-medium transition bg-purple-600 text-white hover:bg-purple-700">
+                                    <i class="fas fa-check-circle mr-2"></i>Select
+                                </button>
+                            </div>
+                        `;
+                        container.appendChild(slotCard);
+                    });
+                }
+            });
+
+        } catch (error) {
+            console.error('Error fetching slots:', error);
+            loadingDiv.classList.add('hidden');
+            container.innerHTML = `
+                <div class="text-center text-red-500 py-8">
+                    <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
+                    <p class="font-bold">Failed to load slots</p>
+                    <p class="text-sm mt-2">${error.message}</p>
+                </div>
+            `;
+        }
+    }
+
+    function selectSlot(slotId, slotName, startTime, endTime) {
+        console.log('=== SLOT SELECTED ===');
+        console.log('SlotID:', slotId, 'Name:', slotName, 'Time:', startTime, '-', endTime);
+
+        selectedSlotId = slotId;
+        selectedSlotInfo = { slotName, startTime, endTime };
+
+        document.getElementById('confirmDate').textContent =
+            selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        document.getElementById('confirmTime').textContent = `${startTime} - ${endTime}`;
+
+        closeModal();
+        document.getElementById('confirmModal').classList.add('active');
+    }
+
+    async function confirmBooking() {
+        console.log('=== CONFIRMING BOOKING ===');
+
+        const bookingData = {
+            slotId: selectedSlotId,
+            appointmentDate: selectedDate.toISOString().split('T')[0]
+        };
+
+        console.log('Booking data:', bookingData);
+
+        try {
+            const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+            console.log('CSRF Token:', csrfToken);
+
+            const response = await fetch(`/doctors/${doctorId}/api/book`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(csrfToken && {'X-CSRF-TOKEN': csrfToken})
+                },
+                body: JSON.stringify(bookingData)
+            });
+
+            console.log('Booking response status:', response.status);
+
+            const contentType = response.headers.get("content-type");
+            console.log('Response Content-Type:', contentType);
+
+            if (!contentType || !contentType.includes("application/json")) {
+                const text = await response.text();
+                console.error('Non-JSON booking response:', text);
+                throw new Error('Server returned non-JSON response');
+            }
+
+            const result = await response.json();
+            console.log('Booking result:', result);
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Booking failed');
+            }
+
+            document.getElementById('appointmentId').textContent = '#APT-' + result.appointmentId;
+            document.getElementById('successDate').textContent =
+                selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            document.getElementById('successTime').textContent =
+                `${selectedSlotInfo.startTime} - ${selectedSlotInfo.endTime}`;
+
+            closeConfirmModal();
+            document.getElementById('successModal').classList.add('active');
+
+            setTimeout(() => {
+                window.location.href = `/doctors/${doctorId}/profile?year=${currentYear}&month=${currentMonth}`;
+            }, 3000);
+
+        } catch (error) {
+            console.error('Booking error:', error);
+            alert('❌ ' + error.message);
+            closeConfirmModal();
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('slotModal').classList.remove('active');
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirmModal').classList.remove('active');
+    }
+
+    function closeSuccessModal() {
+        document.getElementById('successModal').classList.remove('active');
+        window.location.reload();
+    }
+
+    // Close modals on outside click
+    ['slotModal', 'confirmModal', 'successModal'].forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target.id === id) {
+                    modal.classList.remove('active');
+                }
+            });
+        }
+    });
+
+    // Render calendar on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        console.log('Page loaded, rendering calendar...');
+        renderCalendar();
+    });
+</script>
+
+
+<!--<div id="reviewsModal" class="modal" style="display: none;">-->
+<!--    <div class="modal-content max-w-2xl w-full bg-white rounded-lg">-->
+<!--        <div class="p-6 border-b flex justify-between items-center">-->
+<!--            <h4 class="text-lg font-semibold">All Patient Reviews (<span id="modalReviewCount" th:text="${reviewCount}">0</span>)</h4>-->
+<!--            <button onclick="closeReviewsModal()" class="text-gray-500 hover:text-gray-700">-->
+<!--                <i class="fas fa-times"></i>-->
+<!--            </button>-->
+<!--        </div>-->
+<!--        <div class="p-6 max-h-96 overflow-y-auto" id="allReviewsList">-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!-- Replace your reviewsModal div with this -->
+<div id="reviewsModal" class="modal">
+    <div class="modal-content max-w-2xl w-full bg-white rounded-lg shadow-2xl">
+        <div class="p-6 border-b flex justify-between items-center bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-t-lg">
+            <h4 class="text-lg font-semibold">
+                All Patient Reviews
+                (<span id="modalReviewCount" th:text="${reviewCount}">0</span>)
+            </h4>
+            <button onclick="closeReviewsModal()" class="text-white hover:bg-white/20 rounded-full p-2 transition">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+        <div class="p-6 max-h-96 overflow-y-auto" id="allReviewsList">
+            <!-- Reviews will be loaded here by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<!--<script th:inline="javascript">-->
+<!--    window.allReviews = [];-->
+<!--    console.log('Hydrated allReviews:', window.allReviews);-->
+<!--    const modalCountEl = document.getElementById('modalReviewCount');-->
+<!--    if (modalCountEl) {-->
+<!--        modalCountEl.textContent = window.allReviews.length;-->
+<!--    }-->
+<!--</script>-->
+
+<!-- Replace the existing script block with this -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Properly hydrate allReviews from Thymeleaf
+    window.allReviews = /*[[${allReviews}]]*/ [];
+
+    console.log('Total reviews loaded:', window.allReviews.length);
+    console.log('Review data:', window.allReviews);
+
+    // Update modal count
+    const modalCountEl = document.getElementById('modalReviewCount');
+    if (modalCountEl) {
+        modalCountEl.textContent = window.allReviews.length;
+    }
+    /*]]>*/
+</script>
+
+
+<script>
+
+    function openReviewsModal() {
+    console.log('Opening reviews modal...');
+    console.log('Total reviews:', window.allReviews ? window.allReviews.length : 0);
+
+    const modal = document.getElementById('reviewsModal');
+    const list = document.getElementById('allReviewsList');
+
+    if (!modal || !list) {
+        console.error('Modal elements not found!');
+        return;
+    }
+
+    list.innerHTML = '';
+
+    if (!window.allReviews || window.allReviews.length === 0) {
+        list.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-star text-3xl mb-2"></i>
+                <p>No reviews available yet.</p>
+            </div>
+        `;
+    } else {
+        window.allReviews.forEach((review, index) => {
+            console.log(`Rendering review ${index + 1}:`, review);
+
+            const div = document.createElement('div');
+            div.className = 'border-b pb-4 mb-4 last:border-b-0';
+
+            // Generate stars
+            const starsFull = '<i class="fas fa-star text-yellow-400"></i>'.repeat(review.rating || 0);
+            const starsEmpty = '<i class="far fa-star text-gray-300"></i>'.repeat(5 - (review.rating || 0));
+
+            // Format date
+            const dateStr = review.createdAt ?
+                new Date(review.createdAt).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'Unknown date';
+
+            // Comment HTML (only if exists)
+            const commentHtml = review.comment && review.comment.trim() !== '' ?
+                `<p class="text-gray-700 mb-2">${review.comment}</p>` : '';
+
+            div.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-1">
+                        ${starsFull}${starsEmpty}
+                        <span class="text-sm text-gray-500 ml-2">${review.rating || 0}/5</span>
+                    </div>
+                </div>
+                ${commentHtml}
+                <small class="text-gray-500">
+                    By ${review.patientName || 'Anonymous'} on ${dateStr}
+                </small>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    // Show modal
+    modal.classList.add('active');
+    modal.style.display = 'flex'; // Fallback
+    console.log('Modal displayed');
+    }
+
+    function closeReviewsModal() {
+        console.log('Closing reviews modal...');
+        const modal = document.getElementById('reviewsModal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+    }
+
+    // Close on outside click or escape key
+    document.addEventListener('click', (e) => {
+        const modal = document.getElementById('reviewsModal');
+        if (modal && e.target.id === 'reviewsModal') {
+            closeReviewsModal();
+        }
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeReviewsModal();
+        }
+    });
+
+    // Optional: Auto-bind if button exists (for dynamic pages)
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('viewAllReviewsBtn');
+        if (btn && !btn.onclick) {
+            btn.onclick = openReviewsModal;
+            console.log('Button event bound manually');
+        }
+    });
+</script>
+
+
+</body>
+</html>

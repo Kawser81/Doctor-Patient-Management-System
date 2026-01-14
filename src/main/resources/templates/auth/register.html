@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Doctor Patient Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+<div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">
+    <div class="text-center mb-8">
+        <i class="fas fa-user-plus text-5xl text-indigo-600 mb-3"></i>
+        <h1 class="text-3xl font-bold text-gray-800">Create Account</h1>
+        <p class="text-gray-500 mt-2">Join our healthcare platform</p>
+    </div>
+
+    <!-- General Error Message -->
+    <div th:if="${error}" class="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded mb-4 flex items-center">
+        <i class="fas fa-exclamation-circle mr-2"></i>
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Registration Form -->
+    <form th:action="@{/auth/register}" th:object="${request}" method="post" class="space-y-5">
+
+        <!-- Email Field -->
+        <div>
+            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-envelope mr-1 text-indigo-600"></i> Email Address
+            </label>
+            <input type="email"
+                   id="email"
+                   th:field="*{email}"
+                   required
+                   th:classappend="${#fields.hasErrors('email')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
+                   class="w-full px-4 py-3 border rounded-lg focus:ring-2 transition"
+                   placeholder="you@example.com">
+
+            <!-- Email Validation Error -->
+            <div th:if="${#fields.hasErrors('email')}" class="mt-2">
+                <p th:each="err : ${#fields.errors('email')}"
+                   class="text-red-600 text-sm flex items-center">
+                    <i class="fas fa-exclamation-circle mr-1"></i>
+                    <span th:text="${err}"></span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Password Field -->
+        <div>
+            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-lock mr-1 text-indigo-600"></i> Password
+            </label>
+            <input type="password"
+                   id="password"
+                   th:field="*{password}"
+                   required
+                   minlength="6"
+                   th:classappend="${#fields.hasErrors('password')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
+                   class="w-full px-4 py-3 border rounded-lg focus:ring-2 transition"
+                   placeholder="••••••••">
+
+            <!-- Password Validation Error -->
+            <div th:if="${#fields.hasErrors('password')}" class="mt-2">
+                <p th:each="err : ${#fields.errors('password')}"
+                   class="text-red-600 text-sm flex items-center">
+                    <i class="fas fa-exclamation-circle mr-1"></i>
+                    <span th:text="${err}"></span>
+                </p>
+            </div>
+
+            <!-- Password Hint -->
+            <p class="text-xs text-gray-500 mt-1">
+                <i class="fas fa-info-circle mr-1"></i>
+                Minimum 6 characters required
+            </p>
+        </div>
+
+        <!-- Role Field -->
+        <div>
+            <label for="role" class="block text-sm font-semibold text-gray-700 mb-2">
+                <i class="fas fa-user-tag mr-1 text-indigo-600"></i> Select Role
+            </label>
+            <select id="role"
+                    th:field="*{role}"
+                    required
+                    th:classappend="${#fields.hasErrors('role')} ? 'border-red-500 focus:ring-red-500 focus:border-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'"
+                    class="w-full px-4 py-3 border rounded-lg focus:ring-2 transition">
+                <option value="">Select Your Role</option>
+                <option value="PATIENT">
+                    <i class="fas fa-user"></i> Patient
+                </option>
+                <option value="DOCTOR">
+                    <i class="fas fa-user-md"></i> Doctor
+                </option>
+<!--                <option value="ADMIN">-->
+<!--                    <i class="fas fa-user-md"></i> Admin-->
+<!--                </option>-->
+            </select>
+
+            <!-- Role Validation Error -->
+            <div th:if="${#fields.hasErrors('role')}" class="mt-2">
+                <p th:each="err : ${#fields.errors('role')}"
+                   class="text-red-600 text-sm flex items-center">
+                    <i class="fas fa-exclamation-circle mr-1"></i>
+                    <span th:text="${err}"></span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit"
+                class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 text-white py-3 rounded-lg hover:from-indigo-700 hover:to-indigo-800 transition font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+            <i class="fas fa-user-plus mr-2"></i> Create Account
+        </button>
+    </form>
+
+    <!-- Login Link -->
+    <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600">
+            Already have an account?
+            <a href="/auth/login" class="text-indigo-600 hover:text-indigo-700 font-semibold hover:underline">
+                Login here
+            </a>
+        </p>
+    </div>
+
+    <!-- Security Note -->
+<!--    <div class="mt-6 pt-6 border-t border-gray-200">-->
+<!--        <p class="text-center text-xs text-gray-500">-->
+<!--            <i class="fas fa-shield-alt mr-1"></i>-->
+<!--            Your information is secure and encrypted-->
+<!--        </p>-->
+<!--    </div>-->
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Register</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">-->
+<!--</head>-->
+<!--<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">-->
+<!--<div class="bg-white rounded-xl shadow-xl p-8 w-full max-w-md">-->
+<!--    <div class="text-center mb-8">-->
+<!--        <i class="fas fa-user-plus text-5xl text-indigo-600 mb-3"></i>-->
+<!--        <h1 class="text-2xl font-bold text-gray-800">Create Account</h1>-->
+<!--    </div>-->
+
+<!--    <div th:if="${error}" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">-->
+<!--        <span th:text="${error}"></span>-->
+<!--    </div>-->
+
+<!--    <form th:action="@{/auth/register}" th:object="${request}" method="post" class="space-y-5">-->
+<!--        <div>-->
+<!--            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>-->
+<!--            <input type="email" th:field="*{email}" required-->
+<!--                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"-->
+<!--                   placeholder="you@example.com">-->
+<!--            <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-red-500 text-xs mt-1"></p>-->
+<!--        </div>-->
+
+<!--        <div>-->
+<!--            <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>-->
+<!--            <input type="password" th:field="*{password}" required minlength="6"-->
+<!--                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"-->
+<!--                   placeholder="••••••••">-->
+<!--            <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-red-500 text-xs mt-1"></p>-->
+<!--        </div>-->
+
+<!--        <div>-->
+<!--            <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>-->
+<!--            <select th:field="*{role}" required-->
+<!--                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">-->
+<!--                <option value="">Select Role</option>-->
+<!--                <option value="PATIENT">Patient</option>-->
+<!--                <option value="DOCTOR">Doctor</option>-->
+<!--            </select>-->
+<!--            <p th:if="${#fields.hasErrors('role')}" th:errors="*{role}" class="text-red-500 text-xs mt-1"></p>-->
+<!--        </div>-->
+
+<!--        <button type="submit"-->
+<!--                class="w-full bg-indigo-600 text-white py-2.5 rounded-lg hover:bg-indigo-700 transition font-medium">-->
+<!--            Register-->
+<!--        </button>-->
+<!--    </form>-->
+
+<!--    <p class="text-center text-sm text-gray-600 mt-6">-->
+<!--        Already have an account?-->
+<!--        <a href="/auth/login" class="text-indigo-600 hover:underline font-medium">Login here</a>-->
+<!--    </p>-->
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->
