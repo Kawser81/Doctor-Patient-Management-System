@@ -114,7 +114,7 @@ public class DoctorController {
 
         boolean isPatient = currentUser != null && currentUser.getRole() == Role.PATIENT;
 
-        model.addAttribute("isDoctor", isDoctor);  // ADD THIS LINE
+        model.addAttribute("isDoctor", isDoctor);
         model.addAttribute("isPatient", isPatient);
 
         List<ReviewDto> allReviews = doctorService.getReviewsForDoctor(id);
@@ -238,6 +238,7 @@ public class DoctorController {
     }
 
     @PostMapping("/complete-registration")
+    @Transactional
     public String completeRegistration(
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @ModelAttribute("doctorDto") DoctorDto dto,
@@ -294,7 +295,6 @@ public class DoctorController {
         }
     }
 
-
     @GetMapping
     public String listDoctors(
             @RequestParam(required = false) String speciality,
@@ -304,6 +304,12 @@ public class DoctorController {
             Model model) {
 
         List<DoctorWithRatingDto> allDoctorsWithRatings = doctorService.findAllWithAverageRatings();
+
+//        DoctorWithRatingDto {
+//            doctor: Doctor { id: 1, doctorName: "Dr. Ahmed Rahman", speciality: "Cardiology", ... },
+//            averageRating: 4.8,
+//                    reviewCount: 15
+//        }
 
         // Filter by speciality
         if (speciality != null && !speciality.isBlank()) {
@@ -319,7 +325,10 @@ public class DoctorController {
         if (doctorName != null && !doctorName.isBlank()) {
             String searchTerm = doctorName.toLowerCase();
             allDoctorsWithRatings = allDoctorsWithRatings.stream()
-                    .filter(dto -> dto.getDoctor().getDoctorName().toLowerCase().contains(searchTerm))
+                    .filter(dto -> dto.getDoctor()
+                            .getDoctorName()
+                            .toLowerCase()
+                            .contains(searchTerm))
                     .collect(Collectors.toList());
             model.addAttribute("searchQuery", doctorName);
         }
