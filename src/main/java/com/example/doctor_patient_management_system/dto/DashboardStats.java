@@ -10,3 +10,5 @@ public record DashboardStats(
         long confirmedAppointments,
         long cancelledAppointments
 ) {}
+
+//Auto-generated: constructor, getters, equals(), hashCode(), toString()
