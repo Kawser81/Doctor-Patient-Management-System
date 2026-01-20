@@ -35,7 +35,22 @@ public class DoctorCalendarServiceImpl implements  DoctorCalendarService {
 
         List<BookedSlotsDto> bookedSlotsList = getBookedSlotsMap(doctorId, startDate, endDate);
 
+        //[
+        //    BookedSlotsDto { date: 2026-01-05, slotIds: [5, 8, 12] },
+        //    BookedSlotsDto { date: 2026-01-10, slotIds: [3, 7] },
+        //    BookedSlotsDto { date: 2026-01-20, slotIds: [15] }
+        //]
+
         List<LocalDate> allDates = getAllDatesInMonth(year, month);
+
+//        [
+//            2026-01-01,  // Wednesday
+//            2026-01-02,  // Thursday
+//            026-01-03,  // Friday (OFF DAY)
+//            2026-01-04,  // Saturday (OFF DAY)
+//            2026-01-05,  // Sunday
+//            ...
+//        ]
 
         return buildDayStatuses(allDates, bookedSlotsList, today, doctorId);
     }
@@ -53,6 +68,7 @@ public class DoctorCalendarServiceImpl implements  DoctorCalendarService {
                 .entrySet().stream()
                 .map(entry -> new BookedSlotsDto(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
+
     }
 
     private List<LocalDate> getAllDatesInMonth(int year, int month) {
@@ -88,10 +104,20 @@ public class DoctorCalendarServiceImpl implements  DoctorCalendarService {
 
             days.add(new DayStatus(date, status, bookedCount, available, isTodayFlag, dayName));
         }
+
+//        DayStatus {
+//            date: 2026-01-01,
+//            status: "past",
+//            bookedCount: 0,
+//            availableCount: 24,
+//            isToday: false,
+//            dayName: "Wednesday"
+//        }
+
+
         return days;
 
         //Date: 2026-01-12, isPast: false (today is not before today), isOff: true (Sunday), bookedCount: 5, available: 10 - 5 = 5
         //status: "off" (because isOff = true), isToday: true, dayName: "Sunday"
     }
 }
-
