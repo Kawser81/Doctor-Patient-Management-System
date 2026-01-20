@@ -29,4 +29,4 @@ public class BookedSlotsDto {
     }
 }
 
-//mainly kun din koto gulo slot book hoise tar list
+//mainly kon din koto gulo slot book hoise tar list
