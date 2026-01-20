@@ -170,19 +170,25 @@ public class AuthController {
 
         response.addHeader("Authorization", "Bearer " + token);
 
+        // Admin should ALWAYS go to dashboard, regardless of complete status
+        if (user.getRole() == Role.ADMIN) {
+            return "redirect:/admin/dashboard";
+        }
+
+        // For DOCTOR and PATIENT only, check if profile is complete
         if (!user.isComplete()) {
             if (user.getRole() == Role.DOCTOR) {
                 model.addAttribute("doctorDto", new DoctorDto());
                 model.addAttribute("email", user.getEmail());
                 return "complete-doctor-registration";
+            } else if (user.getRole() == Role.PATIENT) {
+                return "redirect:/patients/complete-registration";
             }
-            return "redirect:/patients/complete-registration";
         }
 
         String redirectUrl = switch (user.getRole()) {
             case DOCTOR -> "/doctors/profile";
             case PATIENT -> "/patients/profile";
-            case ADMIN -> "/admin/dashboard";
             default -> "/";
         };
 
