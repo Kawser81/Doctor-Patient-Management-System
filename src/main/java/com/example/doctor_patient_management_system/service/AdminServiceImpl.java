@@ -112,15 +112,6 @@ public class AdminServiceImpl implements AdminService{
     }
 
     @Override
-    public User changeUserRole(Long id, Role newRole) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setRole(newRole);
-        user.setComplete(false);
-        return userRepository.save(user);
-    }
-
-    @Override
     public long getIncompleteProfilesCount() {
         return userRepository.countByCompleteFalse();
     }
@@ -148,7 +139,10 @@ public class AdminServiceImpl implements AdminService{
 
         if (search != null && !search.isBlank()) {
             filteredUsers = filteredUsers.stream()
-                    .filter(u -> u.getEmail().toLowerCase().contains(search.toLowerCase()))
+                    .filter(u -> u.getEmail()
+                            .toLowerCase()
+                            .contains(search
+                                    .toLowerCase()))
                     .collect(Collectors.toList());
         }
 
@@ -161,7 +155,9 @@ public class AdminServiceImpl implements AdminService{
 
         int start = page * size;
         int end = Math.min(start + size, filteredUsers.size());
-        List<User> pagedUsers = start < filteredUsers.size() ? filteredUsers.subList(start, end) : new ArrayList<>();
+        List<User> pagedUsers = start < filteredUsers.size()
+                ? filteredUsers.subList(start, end)
+                : new ArrayList<>();
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         return new PageImpl<>(pagedUsers, pageable, filteredUsers.size());
@@ -254,7 +250,11 @@ public class AdminServiceImpl implements AdminService{
 
     @Override
     public List<User> getRecentRegistrations(int limit) {
-        return userRepository.findAll(Sort.by("id").descending()).stream().limit(limit).collect(Collectors.toList());
+        return userRepository.findAll(Sort.by("id")
+                .descending())
+                .stream()
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -264,12 +264,23 @@ public class AdminServiceImpl implements AdminService{
         if (incomplete > 0) {
             alerts.add("⚠️ " + incomplete + " incomplete profiles pending review.");
         }
+
         List<Appointment> allAppointments = appointmentRepository.findAll();
-        long confirmed = allAppointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED).count();
-        long cancelled = allAppointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CANCELLED).count();
+
+        long confirmed = allAppointments
+                .stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED)
+                .count();
+
+        long cancelled = allAppointments
+                .stream()
+                .filter(a -> a.getStatus() == AppointmentStatus.CANCELLED)
+                .count();
+
         if (cancelled > confirmed / 2) {
             alerts.add("High cancellation rate: " + cancelled + " cancelled vs " + confirmed + " confirmed.");
         }
+
         return alerts;
     }
 
