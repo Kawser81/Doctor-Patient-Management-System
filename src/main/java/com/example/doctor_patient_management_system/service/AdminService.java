@@ -14,7 +14,7 @@ public interface AdminService {
 
      String deleteUser(Long id);
 
-     User changeUserRole(Long id, Role newRole);
+     //User changeUserRole(Long id, Role newRole);
 
      long getIncompleteProfilesCount();
 
