@@ -54,3 +54,7 @@ public class UserPrincipal implements UserDetails {
         return user;
     }
 }
+
+
+//convert custom user entity to Spring security compatible UserDetails
+//as if it works on authentication and authorization in Spring Security
