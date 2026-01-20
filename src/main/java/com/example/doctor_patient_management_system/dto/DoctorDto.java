@@ -19,12 +19,12 @@ public class DoctorDto {
     private String speciality;
 
     @NotBlank(message = "Start time is required")
-    private String consultationStartTime;  // e.g., "09:00"
+    private String consultationStartTime;
 
     @NotBlank(message = "End time is required")
-    private String consultationEndTime;    // e.g., "18:00"
+    private String consultationEndTime;
 
-    private String offDays;  // e.g., "FRIDAY,SATURDAY" (optional)
+    private String offDays;
 
     @NotNull(message = "Consultation fee is required")
     @Min(value = 100, message = "Fee must be at least 100 BDT")
